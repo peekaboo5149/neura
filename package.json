@@ -1,0 +1,65 @@
+{
+  "name": "openclaw",
+  "version": "1.0.0",
+  "description": "An intelligent personal assistant framework with agent management, skill orchestration, and extensible AI capabilities - inspired by modern AI assistant architectures",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node-dev --transpile-only --respawn --rs --clear -r reflect-metadata -r tsconfig-paths/register src/main.ts",
+    "dev:typecheck": "ts-node-dev --respawn --rs --clear -r reflect-metadata -r tsconfig-paths/register src/main.ts",
+    "lint": "eslint src test --ext .ts",
+    "lint:fix": "eslint src test --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "jest --testPathPattern=test/",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "assistant",
+    "agent",
+    "framework",
+    "automation",
+    "personal-assistant"
+  ],
+  "author": "Tanmay Kumar <ktanmay5149@gmail.com>",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/peekaboo5149/openclaw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/peekaboo5149/openclaw/issues"
+  },
+  "homepage": "https://github.com/peekaboo5149/openclaw#readme",
+  "packageManager": "pnpm@10.17.1",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.2",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "jest": "^30.2.0",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/csrf-protection": "^7.1.0",
+    "@fastify/helmet": "^13.0.2",
+    "fastify": "^5.7.4",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0",
+    "zod": "^4.3.6"
+  }
+}

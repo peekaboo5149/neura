@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "neura",
   "version": "1.0.0",
   "description": "An intelligent personal assistant framework with agent management, skill orchestration, and extensible AI capabilities - inspired by modern AI assistant architectures",

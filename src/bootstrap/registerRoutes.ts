@@ -1,4 +1,5 @@
 import { HealthController } from '@api/health/health.controller';
+import { QueryController } from '@api/query/query.controller';
 import { resolve } from '@config/container';
 import type { FastifyInstance } from 'fastify';
 
@@ -13,7 +14,9 @@ import type { FastifyInstance } from 'fastify';
 export function registerRoutes(fastify: FastifyInstance): void {
   // Resolve controllers from DI container
   const healthController = resolve(HealthController);
+  const commanderController = resolve(QueryController);
 
   // Register routes for each controller
   healthController.registerRoutes(fastify);
+  commanderController.registerRoutes(fastify);
 }

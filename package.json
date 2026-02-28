@@ -78,8 +78,10 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/csrf-protection": "^7.1.0",
     "@fastify/helmet": "^13.0.2",
+    "dotenv": "^17.3.1",
     "fastify": "^5.7.4",
     "module-alias": "^2.3.4",
+    "openai": "^6.25.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0",
     "zod": "^4.3.6"

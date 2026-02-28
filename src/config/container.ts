@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+import { OpenAIConfig } from './openai.config';
 
 /**
  * Dependency Injection Container Configuration
@@ -15,6 +16,9 @@ import { container } from 'tsyringe';
 export function initializeContainer(): void {
   // Services are auto-registered via @injectable decorator
   // Additional manual registrations can be added here if needed
+
+  // Register config classes for direct injection
+  container.register(OpenAIConfig, { useClass: OpenAIConfig });
 }
 
 /**

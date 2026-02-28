@@ -1,4 +1,5 @@
 import { HealthService } from '@api/health/health.service';
+import { BaseController } from '@bootstrap/base.controller';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -12,7 +13,7 @@ import { inject, injectable } from 'tsyringe';
  * - No business logic in controller methods
  */
 @injectable()
-export class HealthController {
+export class HealthController implements BaseController {
   constructor(@inject(HealthService) private readonly healthService: HealthService) {}
 
   /**

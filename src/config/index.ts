@@ -21,6 +21,7 @@ export {
 
 // Config classes
 export { LoggingConfig, type LoggingConfigType } from './logging.config';
+export { OpenAIConfig, type OpenAIConfigType } from './openai.config';
 export { ServerConfig, type ServerConfigType } from './server.config';
 
 /**
@@ -29,6 +30,7 @@ export { ServerConfig, type ServerConfigType } from './server.config';
  */
 import { getConfigRegistry, registerConfigsInContainer } from './core';
 import { LoggingConfig } from './logging.config';
+import { OpenAIConfig } from './openai.config';
 import { ServerConfig } from './server.config';
 
 export function initializeConfigs(): void {
@@ -37,6 +39,7 @@ export function initializeConfigs(): void {
   // Register all configs
   registry.register('server', ServerConfig);
   registry.register('logging', LoggingConfig);
+  registry.register('openai', OpenAIConfig);
 
   // Register in DI container
   registerConfigsInContainer();

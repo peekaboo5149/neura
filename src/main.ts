@@ -1,3 +1,9 @@
+import { config as dotenvConfig } from 'dotenv';
+
+// Load environment variables from .env file BEFORE any other imports
+// This must happen before ExecutionModeDetector or any config classes are loaded
+dotenvConfig();
+
 import { ExecutionModeDetector, NeuraHomeService, PidService, ProcessService } from '@daemon';
 
 // Apply execution mode BEFORE any other imports that might depend on NODE_ENV

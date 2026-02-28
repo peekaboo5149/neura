@@ -1,43 +1,43 @@
 name: Generate AUTHOR.md
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  generate-author:
-    runs-on: ubuntu-latest
+    generate-author:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Generate AUTHOR.md
-        run: |
-          echo "# Authors" > AUTHOR.md
-          echo "" >> AUTHOR.md
-          echo "This project is made possible by the following contributors:" >> AUTHOR.md
-          echo "" >> AUTHOR.md
-          git log --format='- %an <%ae>' | sort -u >> AUTHOR.md
-          echo "" >> AUTHOR.md
-          echo "---" >> AUTHOR.md
-          echo "" >> AUTHOR.md
-          echo "*Generated automatically on $(date -u +'%Y-%m-%d %H:%M:%S UTC')*" >> AUTHOR.md
+            - name: Generate AUTHOR.md
+              run: |
+                  echo "# Authors" > AUTHOR.md
+                  echo "" >> AUTHOR.md
+                  echo "This project is made possible by the following contributors:" >> AUTHOR.md
+                  echo "" >> AUTHOR.md
+                  git log --format='- %an <%ae>' | sort -u >> AUTHOR.md
+                  echo "" >> AUTHOR.md
+                  echo "---" >> AUTHOR.md
+                  echo "" >> AUTHOR.md
+                  echo "*Generated automatically on $(date -u +'%Y-%m-%d %H:%M:%S UTC')*" >> AUTHOR.md
 
-      - name: Commit and push AUTHOR.md
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add AUTHOR.md
-          if git diff --staged --quiet; then
-            echo "No changes to AUTHOR.md"
-          else
-            git commit -m "chore: update AUTHOR.md [skip ci]"
-            git push
-          fi
+            - name: Commit and push AUTHOR.md
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add AUTHOR.md
+                  if git diff --staged --quiet; then
+                    echo "No changes to AUTHOR.md"
+                  else
+                    git commit -m "chore: update AUTHOR.md [skip ci]"
+                    git push
+                  fi

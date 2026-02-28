@@ -1,5 +1,5 @@
 /**
- * OpenClaw Logging Module
+ * Neura Logging Module
  *
  * Enterprise-grade logging framework with:
  * - Clean architecture and full abstraction

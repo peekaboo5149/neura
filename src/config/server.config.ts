@@ -12,7 +12,7 @@ const serverConfigSchema = z.object({
   /** Node environment */
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   /** Application name */
-  appName: z.string().default('openclaw'),
+  appName: z.string().default('neura'),
   /** Application version */
   appVersion: z.string().default('1.0.0'),
   /** CORS origin */

@@ -1,4 +1,4 @@
-# OpenClaw
+# Neura
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Fastify](https://img.shields.io/badge/Fastify-5.7-black?logo=fastify)](https://www.fastify.io/)
@@ -125,7 +125,7 @@ The logging system follows a clean architecture with swappable engines:
 ## Project Structure
 
 ```
-openclaw/
+neura/
 ├── src/
 │   ├── api/                    # API layer (controllers, services)
 │   │   └── health/
@@ -171,8 +171,8 @@ openclaw/
 
 ```bash
 # Clone the repository
-git clone https://github.com/peekaboo5149/openclaw.git
-cd openclaw
+git clone https://github.com/peekaboo5149/neura.git
+cd neura
 
 # Install dependencies
 pnpm install

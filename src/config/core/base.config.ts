@@ -89,7 +89,6 @@ export abstract class BaseConfig<TConfig> {
     // Try boolean
     if (value.toLowerCase() === 'true') return true;
     if (value.toLowerCase() === 'false') return false;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 
     // Try number
     if (/^\d+$/.test(value)) return parseInt(value, 10);

@@ -1,5 +1,5 @@
 {
-  "name": "openclaw",
+  "name": "neura",
   "version": "1.0.0",
   "description": "An intelligent personal assistant framework with agent management, skill orchestration, and extensible AI capabilities - inspired by modern AI assistant architectures",
   "main": "dist/main.js",
@@ -31,12 +31,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/peekaboo5149/openclaw.git"
+    "url": "https://github.com/peekaboo5149/neura.git"
   },
   "bugs": {
-    "url": "https://github.com/peekaboo5149/openclaw/issues"
+    "url": "https://github.com/peekaboo5149/neura/issues"
   },
-  "homepage": "https://github.com/peekaboo5149/openclaw#readme",
+  "homepage": "https://github.com/peekaboo5149/neura#readme",
   "packageManager": "pnpm@10.17.1",
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

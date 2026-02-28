@@ -24,7 +24,7 @@ jobs:
                   echo "" >> AUTHOR.md
                   echo "This project is made possible by the following contributors:" >> AUTHOR.md
                   echo "" >> AUTHOR.md
-                  git log --format='- %an <%ae>' | sort -u >> AUTHOR.md
+                  git log --use-mailmap --format='- %an <%ae>' | sort -u >> AUTHOR.md
                   echo "" >> AUTHOR.md
                   echo "---" >> AUTHOR.md
                   echo "" >> AUTHOR.md

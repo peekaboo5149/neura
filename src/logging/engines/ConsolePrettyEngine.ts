@@ -226,7 +226,7 @@ export class ConsolePrettyEngine implements ILoggerEngine {
       return `[${value.map((v) => this.formatValue(v)).join(', ')}]`;
     }
 
-    if (typeof value === 'object') {
+    if (typeof value === 'object' && value !== null) {
       try {
         return JSON.stringify(value);
       } catch {
@@ -234,6 +234,13 @@ export class ConsolePrettyEngine implements ILoggerEngine {
       }
     }
 
+    // Handle null explicitly
+    if (value === null) {
+      return 'null';
+    }
+
+    // For other types, use String() which is safe for primitives
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(value);
   }
 

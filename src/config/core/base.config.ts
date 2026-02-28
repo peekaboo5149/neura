@@ -2,7 +2,7 @@ import { ZodIssue, type ZodSchema } from 'zod';
 
 /**
  * BaseConfig - Abstract base class for all configuration classes
- * 
+ *
  * Provides common functionality for:
  * - Zod schema validation
  * - Environment variable loading
@@ -69,9 +69,7 @@ export abstract class BaseConfig<TConfig> {
         .map((issue: ZodIssue) => `  - ${issue.path.join('.')}: ${issue.message}`)
         .join('\n');
 
-      throw new Error(
-        `Configuration validation failed for ${this.constructor.name}:\n${errors}`
-      );
+      throw new Error(`Configuration validation failed for ${this.constructor.name}:\n${errors}`);
     }
 
     return result.data;
@@ -81,9 +79,7 @@ export abstract class BaseConfig<TConfig> {
    * Convert environment variable name to camelCase
    */
   private toCamelCase(str: string): string {
-    return str
-      .toLowerCase()
-      .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    return str.toLowerCase().replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
   }
 
   /**
@@ -93,6 +89,7 @@ export abstract class BaseConfig<TConfig> {
     // Try boolean
     if (value.toLowerCase() === 'true') return true;
     if (value.toLowerCase() === 'false') return false;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 
     // Try number
     if (/^\d+$/.test(value)) return parseInt(value, 10);

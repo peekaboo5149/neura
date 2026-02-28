@@ -12,7 +12,7 @@ import { registerRoutes } from './registerRoutes';
 
 /**
  * Server configuration and bootstrap
- * 
+ *
  * Encapsulates all Fastify server setup:
  * - Plugin registration (security, CORS)
  * - Route registration
@@ -65,8 +65,9 @@ export async function createServer(): Promise<FastifyInstance> {
   });
 
   // Register custom logger for request/response logging
-  fastify.addHook('onRequest', async (request) => {
+  fastify.addHook('onRequest', (request) => {
     request.log = logger as unknown as FastifyBaseLogger;
+    return Promise.resolve();
   });
 
   // Register routes
@@ -80,14 +81,14 @@ export async function createServer(): Promise<FastifyInstance> {
       requestId: request.id,
     });
 
-    const serverConfig = getConfigRegistry().get<ServerConfig>('server') as ServerConfig | undefined;
+    const serverConfig = getConfigRegistry().get<ServerConfig>('server') as
+      | ServerConfig
+      | undefined;
     const isProduction = serverConfig?.isProduction ?? false;
 
     return reply.status(500).send({
       error: 'Internal Server Error',
-      message: isProduction
-        ? 'Something went wrong' 
-        : error.message,
+      message: isProduction ? 'Something went wrong' : error.message,
     });
   });
 

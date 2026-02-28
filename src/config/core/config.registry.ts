@@ -8,7 +8,7 @@ export const CONFIG_TOKEN = Symbol('Config');
 
 /**
  * ConfigRegistry - Central registry for all application configurations
- * 
+ *
  * Implements the Registry pattern for managing configuration instances.
  * All configs are validated at registration time (fail-fast).
  */

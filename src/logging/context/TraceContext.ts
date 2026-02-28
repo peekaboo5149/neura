@@ -60,9 +60,11 @@ export function generateCorrelationId(): string {
  */
 function generateHexString(byteLength: number): string {
   const bytes = new Uint8Array(byteLength);
-  
+
   // Use crypto if available (Node.js)
+  // eslint-disable-next-line no-undef
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    // eslint-disable-next-line no-undef
     crypto.getRandomValues(bytes);
   } else {
     // Fallback for environments without crypto
@@ -79,9 +81,7 @@ function generateHexString(byteLength: number): string {
 /**
  * Create a new root trace context
  */
-export function createTraceContext(
-  overrides?: Partial<TraceContext>
-): TraceContext {
+export function createTraceContext(overrides?: Partial<TraceContext>): TraceContext {
   return {
     traceId: generateTraceId(),
     spanId: generateSpanId(),

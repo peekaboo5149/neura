@@ -3,7 +3,7 @@ import { injectable } from 'tsyringe';
 
 /**
  * HealthService - Business logic for health checks
- * 
+ *
  * This service encapsulates all health-related business logic.
  * Currently minimal but designed for extensibility (DB checks, external services, etc.)
  */

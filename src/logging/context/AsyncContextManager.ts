@@ -4,7 +4,7 @@ import type { TraceContext } from './TraceContext';
 /**
  * AsyncContextManager - Manages trace context across async operations
  * Uses Node.js AsyncLocalStorage for context propagation
- * 
+ *
  * This enables automatic trace context attachment to logs without
  * explicitly passing context through every function call
  */
@@ -42,10 +42,7 @@ export class AsyncContextManager {
    * @param fn - The async function to run
    * @returns A promise that resolves to the result
    */
-  public async runWithContextAsync<T>(
-    context: TraceContext,
-    fn: () => Promise<T>
-  ): Promise<T> {
+  public async runWithContextAsync<T>(context: TraceContext, fn: () => Promise<T>): Promise<T> {
     return this.storage.run(context, fn);
   }
 
@@ -82,27 +79,22 @@ export class AsyncContextManager {
   /**
    * Extract or create trace context from an incoming request
    */
-  private extractContextFromRequest(
-    req: Record<string, unknown>
-  ): TraceContext {
+  private extractContextFromRequest(req: Record<string, unknown>): TraceContext {
     const headers = (req.headers as Record<string, string | string[] | undefined>) || {};
 
-    const traceId = this.getHeaderValue(headers, 'x-trace-id') ||
+    const traceId =
+      this.getHeaderValue(headers, 'x-trace-id') ||
       this.getHeaderValue(headers, 'x-request-id') ||
       this.generateId(16);
 
     const spanId = this.generateId(8);
 
-    const correlationId =
-      this.getHeaderValue(headers, 'x-correlation-id') ||
-      this.generateId(8);
+    const correlationId = this.getHeaderValue(headers, 'x-correlation-id') || this.generateId(8);
 
-    const parentSpanId = this.getHeaderValue(headers, 'x-span-id') ||
-      this.getHeaderValue(headers, 'x-parent-span-id');
+    const parentSpanId =
+      this.getHeaderValue(headers, 'x-span-id') || this.getHeaderValue(headers, 'x-parent-span-id');
 
-    const sampled = this.parseSampledHeader(
-      this.getHeaderValue(headers, 'x-sampled')
-    );
+    const sampled = this.parseSampledHeader(this.getHeaderValue(headers, 'x-sampled'));
 
     return {
       traceId,
@@ -161,10 +153,7 @@ export function getCurrentTraceContext(): TraceContext | undefined {
 /**
  * Convenience function to run code within a trace context
  */
-export function runWithTraceContext<T>(
-  context: TraceContext,
-  fn: () => T
-): T {
+export function runWithTraceContext<T>(context: TraceContext, fn: () => T): T {
   return AsyncContextManager.getInstance().runWithContext(context, fn);
 }
 

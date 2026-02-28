@@ -23,7 +23,7 @@ export enum EngineType {
 export class LoggerFactory {
   private static customEngineFactory?: () => ILoggerEngine;
   // This is used in future extensibility - do not remove
-  // eslint-disable-next-line @typescript-eslint/no-unused-private-class-members
+
   private static _engineType: EngineType = EngineType.CONSOLE_PRETTY;
 
   /**
@@ -38,11 +38,7 @@ export class LoggerFactory {
 
     switch (engineType) {
       case EngineType.CONSOLE_PRETTY:
-        return new ConsolePrettyEngine(
-          config.level,
-          config.timestamp,
-          process.stdout
-        );
+        return new ConsolePrettyEngine(config.level, config.timestamp, process.stdout);
 
       case EngineType.JSON_CONSOLE:
         return new JsonConsoleEngine(
@@ -58,16 +54,12 @@ export class LoggerFactory {
         if (this.customEngineFactory) {
           return this.customEngineFactory();
         }
-        console.warn(
-          'Custom engine factory not set, falling back to console-pretty'
-        );
+        console.warn('Custom engine factory not set, falling back to console-pretty');
         return new ConsolePrettyEngine(config.level, config.timestamp);
 
       case EngineType.PINO:
       case EngineType.WINSTON:
-        console.warn(
-          `${engineType} engine not yet implemented, falling back to json-console`
-        );
+        console.warn(`${engineType} engine not yet implemented, falling back to json-console`);
         return new JsonConsoleEngine(
           config.level,
           config.timestamp,

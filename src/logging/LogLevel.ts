@@ -60,9 +60,6 @@ export function parseLogLevel(level: string | undefined): LogLevel {
 /**
  * Check if a log level should be output based on the configured minimum level
  */
-export function shouldLogLevelOutput(
-  messageLevel: LogLevel,
-  minimumLevel: LogLevel
-): boolean {
+export function shouldLogLevelOutput(messageLevel: LogLevel, minimumLevel: LogLevel): boolean {
   return messageLevel >= minimumLevel && messageLevel < LogLevel.SILENT;
 }

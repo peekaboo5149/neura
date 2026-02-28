@@ -6,6 +6,7 @@ import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
   js.configs.recommended,
+  // Base configuration for all TypeScript files
   {
     files: ['src/**/*.ts', 'test/**/*.ts'],
     languageOptions: {
@@ -13,6 +14,19 @@ export default [
       parserOptions: {
         project: './tsconfig.json',
         tsconfigRootDir: process.cwd(),
+      },
+      globals: {
+        // Node.js globals
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        exports: 'readonly',
+        module: 'readonly',
+        require: 'readonly',
+        // NodeJS namespace
+        NodeJS: 'readonly',
       },
     },
     plugins: {
@@ -34,12 +48,40 @@ export default [
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
-  // Test files - allow console and relax some rules
+  // Test files - allow console, jest globals, and relax some rules
   {
     files: ['**/*.spec.ts', 'test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        // Jest globals
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly',
+        jest: 'readonly',
+        // Node.js globals for tests
+        process: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+      },
+    },
     rules: {
       'no-console': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // Logging module - allow require for dynamic imports
+  {
+    files: ['src/logging/Logger.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

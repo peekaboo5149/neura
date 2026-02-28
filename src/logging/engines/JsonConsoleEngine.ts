@@ -163,9 +163,9 @@ export class JsonConsoleEngine implements ILoggerEngine {
    * Safely stringify an object, handling circular references
    */
   private safeStringify(obj: Record<string, unknown>): string {
-    const seen = new WeakSet();
+    const seen = new WeakSet<object>();
 
-    return JSON.stringify(obj, (_key, value) => {
+    return JSON.stringify(obj, (_key, value: unknown) => {
       // Handle circular references
       if (typeof value === 'object' && value !== null) {
         if (seen.has(value)) {

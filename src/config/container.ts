@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 
 /**
  * Dependency Injection Container Configuration
- * 
+ *
  * This module configures the tsyringe DI container for the application.
  * All service registrations are centralized here for easy management.
  */
@@ -20,7 +20,7 @@ export function initializeContainer(): void {
 /**
  * Get the configured DI container instance
  */
-export function getContainer() {
+export function getContainer(): typeof container {
   return container;
 }
 

@@ -1,6 +1,6 @@
 /**
  * Config Module
- * 
+ *
  * Centralized configuration management with:
  * - Zod-based schema validation
  * - Type-safe configuration access
@@ -10,10 +10,13 @@
 
 // Core exports
 export {
-    BaseConfig, CONFIG_TOKEN, ConfigRegistry, getConfigRegistry,
-    registerConfigsInContainer,
-    resolveConfig,
-    type ConfigType
+  BaseConfig,
+  CONFIG_TOKEN,
+  ConfigRegistry,
+  getConfigRegistry,
+  registerConfigsInContainer,
+  resolveConfig,
+  type ConfigType,
 } from './core';
 
 // Config classes

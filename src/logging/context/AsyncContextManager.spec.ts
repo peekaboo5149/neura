@@ -1,4 +1,9 @@
-import { AsyncContextManager, getCurrentTraceContext, runWithTraceContext, runWithTraceContextAsync } from './AsyncContextManager';
+import {
+  AsyncContextManager,
+  getCurrentTraceContext,
+  runWithTraceContext,
+  runWithTraceContextAsync,
+} from './AsyncContextManager';
 import type { TraceContext } from './TraceContext';
 
 describe('AsyncContextManager', () => {
@@ -94,8 +99,9 @@ describe('AsyncContextManager', () => {
         spanId: 'def456',
       };
 
-      await manager.runWithContextAsync(context, async () => {
+      await manager.runWithContextAsync(context, () => {
         expect(manager.getContext()).toEqual(context);
+        return Promise.resolve();
       });
 
       expect(manager.getContext()).toBeUndefined();

@@ -7,9 +7,7 @@ import { BaseConfig } from './core/base.config';
  */
 const loggingConfigSchema = z.object({
   /** Minimum log level */
-  level: z
-    .enum(['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'SILENT'])
-    .default('INFO'),
+  level: z.enum(['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'SILENT']).default('INFO'),
   /** Output logs in JSON format */
   json: z.coerce.boolean().default(false),
   /** Include timestamp in logs */
@@ -33,7 +31,7 @@ export type LoggingConfigType = z.infer<typeof loggingConfigSchema>;
 
 /**
  * LoggingConfig - Logging-related configuration
- * 
+ *
  * Encapsulates all logging configuration with validation:
  * - Log levels
  * - Output formats
@@ -41,7 +39,7 @@ export type LoggingConfigType = z.infer<typeof loggingConfigSchema>;
  * - Engine selection
  */
 export class LoggingConfig extends BaseConfig<LoggingConfigType> {
-  protected getSchema() {
+  protected getSchema(): import('zod').ZodSchema<LoggingConfigType> {
     return loggingConfigSchema;
   }
   protected getEnvPrefix(): string {

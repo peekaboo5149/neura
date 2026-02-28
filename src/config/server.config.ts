@@ -28,7 +28,7 @@ export type ServerConfigType = z.infer<typeof serverConfigSchema>;
 
 /**
  * ServerConfig - Server-related configuration
- * 
+ *
  * Encapsulates all server configuration with validation:
  * - Port and host settings
  * - Environment configuration
@@ -36,7 +36,7 @@ export type ServerConfigType = z.infer<typeof serverConfigSchema>;
  * - Application metadata
  */
 export class ServerConfig extends BaseConfig<ServerConfigType> {
-  protected getSchema() {
+  protected getSchema(): import('zod').ZodSchema<ServerConfigType> {
     return serverConfigSchema;
   }
   protected getEnvPrefix(): string {

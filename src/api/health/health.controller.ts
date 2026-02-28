@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 
 /**
  * HealthController - HTTP request handler for health endpoints
- * 
+ *
  * Follows the controller pattern:
  * - Handles HTTP-specific concerns (request/response)
  * - Delegates business logic to HealthService
@@ -13,9 +13,7 @@ import { inject, injectable } from 'tsyringe';
  */
 @injectable()
 export class HealthController {
-  constructor(
-    @inject(HealthService) private readonly healthService: HealthService
-  ) {}
+  constructor(@inject(HealthService) private readonly healthService: HealthService) {}
 
   /**
    * Register all health routes with Fastify
@@ -30,10 +28,7 @@ export class HealthController {
    * GET /health
    * Basic health check endpoint
    */
-  private async getHealth(
-    _request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<void> {
+  private async getHealth(_request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const result = this.healthService.checkHealth();
     return reply.send(result);
   }
@@ -42,10 +37,7 @@ export class HealthController {
    * GET /health/detailed
    * Detailed health check endpoint
    */
-  private async getDetailedHealth(
-    _request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<void> {
+  private async getDetailedHealth(_request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const result = this.healthService.getDetailedHealth();
     return reply.send(result);
   }

@@ -39,7 +39,10 @@ export class Logger implements ILogger {
       this.engine = engine;
     } else {
       // Lazy import to avoid circular dependencies
-      const { LoggerFactory } = require('./LoggerFactory');
+
+      const { LoggerFactory } = require('./LoggerFactory') as {
+        LoggerFactory: typeof import('./LoggerFactory').LoggerFactory;
+      };
       this.engine = LoggerFactory.createEngine();
     }
   }
@@ -60,41 +63,23 @@ export class Logger implements ILogger {
     this.log(LogLevel.WARN, message, undefined, metadata);
   }
 
-  public error(
-    message: LogMessage,
-    error?: Error,
-    metadata?: LogMetadata
-  ): void {
+  public error(message: LogMessage, error?: Error, metadata?: LogMetadata): void {
     this.log(LogLevel.ERROR, message, error, metadata);
   }
 
-  public fatal(
-    message: LogMessage,
-    error?: Error,
-    metadata?: LogMetadata
-  ): void {
+  public fatal(message: LogMessage, error?: Error, metadata?: LogMetadata): void {
     this.log(LogLevel.FATAL, message, error, metadata);
   }
 
   public child(metadata: LogMetadata): ILogger {
     const mergedMetadata = this.mergeMetadata(this.parentMetadata, metadata);
-    return new Logger(
-      this.context,
-      this.options,
-      this.engine,
-      mergedMetadata
-    );
+    return new Logger(this.context, this.options, this.engine, mergedMetadata);
   }
 
   /**
    * Internal log method that handles all log levels
    */
-  private log(
-    level: LogLevel,
-    message: LogMessage,
-    error?: Error,
-    metadata?: LogMetadata
-  ): void {
+  private log(level: LogLevel, message: LogMessage, error?: Error, metadata?: LogMetadata): void {
     // Check if level is enabled before evaluating message
     if (!shouldLogLevelOutput(level, this.engine.getLevel())) {
       return;
@@ -107,11 +92,7 @@ export class Logger implements ILogger {
     const traceContext = getCurrentTraceContext();
 
     // Merge metadata
-    const mergedMetadata = this.mergeMetadata(
-      this.parentMetadata,
-      this.options.metadata,
-      metadata
-    );
+    const mergedMetadata = this.mergeMetadata(this.parentMetadata, this.options.metadata, metadata);
 
     // Redact sensitive fields
     const config = getLoggerConfig();
@@ -143,9 +124,7 @@ export class Logger implements ILogger {
    * Merge multiple metadata objects
    * Later objects override earlier ones
    */
-  private mergeMetadata(
-    ...metadataArray: (LogMetadata | undefined)[]
-  ): LogMetadata | undefined {
+  private mergeMetadata(...metadataArray: (LogMetadata | undefined)[]): LogMetadata | undefined {
     const filtered = metadataArray.filter(
       (m): m is LogMetadata => m !== undefined && Object.keys(m).length > 0
     );

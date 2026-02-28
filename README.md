@@ -2,7 +2,7 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Fastify](https://img.shields.io/badge/Fastify-5.7-black?logo=fastify)](https://www.fastify.io/)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 An intelligent personal assistant framework with agent management, skill
@@ -307,4 +307,5 @@ of conduct and contribution guidelines.
 
 ## License
 
-This project is licensed under the ISC License - see the repository for details.
+This project is licensed under the MIT License - see [LICENSE](./LICENSE) for
+details.

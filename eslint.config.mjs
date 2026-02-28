@@ -23,13 +23,27 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       ...tsPlugin.configs['recommended-requiring-type-checking'].rules,
       'prettier/prettier': 'error',
+      // Strict TypeScript rules
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/strict-boolean-expressions': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      // No console in production code (allowed in tests)
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+    },
+  },
+  // Test files - allow console and relax some rules
+  {
+    files: ['**/*.spec.ts', 'test/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.js'],
+    ignores: ['dist/', 'node_modules/', '*.js', 'commitlint.config.js'],
   },
   prettierConfig,
 ];

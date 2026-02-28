@@ -93,12 +93,26 @@ export class QueryController implements BaseController {
     this.logger.info('Query received', { query });
 
     try {
-      const response = await this.queryService.execute(query, context);
+      const result = await this.queryService.execute(query, context);
+
+      // If operation is restricted, return 403 Forbidden
+      if (!result.canExecute) {
+        return reply.status(403).send({
+          success: false,
+          query,
+          intent: result.intent,
+          classification: result.classification,
+          reason: result.reason,
+          error: 'This operation is restricted and cannot be executed',
+        });
+      }
 
       return reply.send({
         success: true,
         query,
-        response,
+        intent: result.intent,
+        classification: result.classification,
+        reason: result.reason,
         context,
       });
     } catch (error) {

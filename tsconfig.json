@@ -14,6 +14,8 @@
       "@bootstrap/*": ["bootstrap/*"],
       "@cli/*": ["cli/*"],
       "@cli": ["cli/index"],
+      "@daemon/*": ["daemon/*"],
+      "@daemon": ["daemon/index"],
       "@types/*": ["types/*"]
     },
     "strict": true,

@@ -14,6 +14,7 @@
     "@config": "dist/src/config",
     "@bootstrap": "dist/src/bootstrap",
     "@cli": "dist/src/cli",
+    "@daemon": "dist/src/daemon",
     "@types": "dist/src/types"
   },
   "scripts": {

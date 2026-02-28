@@ -7,6 +7,9 @@ import helmet from '@fastify/helmet';
 import { Logger } from '@logging';
 import type { FastifyBaseLogger, FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
+import { unlinkSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
 import 'reflect-metadata';
 import { registerRoutes } from './registerRoutes';
 
@@ -132,8 +135,13 @@ export async function startServer(fastify: FastifyInstance): Promise<void> {
 
 /**
  * Setup graceful shutdown handlers
+ * @param fastify - Fastify instance
+ * @param pidService - Optional PID service for daemon cleanup
  */
-export function setupGracefulShutdown(fastify: FastifyInstance): void {
+export function setupGracefulShutdown(
+  fastify: FastifyInstance,
+  pidService?: { removePid(): Promise<void> }
+): void {
   const logger = new Logger('Server');
   let isShuttingDown = false;
 
@@ -147,6 +155,19 @@ export function setupGracefulShutdown(fastify: FastifyInstance): void {
 
     try {
       await fastify.close();
+
+      // Remove PID file if daemon
+      if (pidService) {
+        try {
+          await pidService.removePid();
+          logger.info('PID file removed');
+        } catch (error) {
+          logger.warn('Failed to remove PID file', {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
       logger.info('Server closed successfully');
       process.exit(0);
     } catch (error) {
@@ -167,5 +188,18 @@ export function setupGracefulShutdown(fastify: FastifyInstance): void {
   process.on('unhandledRejection', (reason) => {
     logger.error('Unhandled rejection', reason as Error);
     void shutdown('unhandledRejection');
+  });
+
+  // Also cleanup on exit event (synchronous - best effort)
+  process.on('exit', () => {
+    if (pidService) {
+      try {
+        // Use sync version for exit handler
+        const pidPath = join(homedir(), '.neura', 'neura.pid');
+        unlinkSync(pidPath);
+      } catch {
+        // Ignore errors on exit
+      }
+    }
   });
 }

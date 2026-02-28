@@ -1,9 +1,11 @@
+import { DaemonManager, NeuraHomeService, PidService, ProcessService } from '@daemon';
+import { Logger } from '@logging';
 import { executeClearLogs } from './commands/clearLogs';
 
 /**
  * CLI Command types
  */
-export type CliCommand = 'clearlogs' | 'help' | 'version' | 'unknown';
+export type CliCommand = 'start' | 'stop' | 'status' | 'clearlogs' | 'help' | 'version' | 'unknown';
 
 /**
  * Parse CLI arguments to determine command
@@ -16,6 +18,15 @@ export function parseCommand(args: string[]): { command: CliCommand; args: strin
   const command = args[0].toLowerCase();
 
   switch (command) {
+    case 'start':
+      return { command: 'start', args: args.slice(1) };
+
+    case 'stop':
+      return { command: 'stop', args: args.slice(1) };
+
+    case 'status':
+      return { command: 'status', args: args.slice(1) };
+
     case 'clearlogs':
     case 'clear-logs':
     case 'clear_logs':
@@ -48,7 +59,9 @@ Usage:
   neura [command]
 
 Commands:
-  (no command)    Start the server normally
+  start           Start Neura as a background daemon
+  stop            Stop the running Neura daemon
+  status          Check if Neura daemon is running
   clearlogs       Delete all log files from ~/.neura/logs
   help            Show this help message
   version         Show version information
@@ -60,8 +73,9 @@ Environment Variables:
   LOG_DIRECTORY   Custom log directory path
 
 Examples:
-  neura                           # Start server in development
-  NODE_ENV=production neura       # Start server in production
+  neura start                     # Start daemon in production mode
+  neura status                    # Check daemon status
+  neura stop                      # Stop the daemon
   neura clearlogs                 # Clear all log files
 `);
 }
@@ -85,6 +99,15 @@ export async function handleCliCommand(args: string[]): Promise<boolean> {
   const { command } = parseCommand(args);
 
   switch (command) {
+    case 'start':
+      return handleStartCommand();
+
+    case 'stop':
+      return handleStopCommand();
+
+    case 'status':
+      return handleStatusCommand();
+
     case 'clearlogs':
       return handleClearLogsCommand();
 
@@ -101,6 +124,48 @@ export async function handleCliCommand(args: string[]): Promise<boolean> {
       // Not a recognized command, proceed with normal startup
       return false;
   }
+}
+
+/**
+ * Handle the start command
+ */
+async function handleStartCommand(): Promise<boolean> {
+  const logger = new Logger('Daemon');
+  const homeService = new NeuraHomeService();
+  const pidService = new PidService(homeService);
+  const processService = new ProcessService();
+  const daemonManager = new DaemonManager(pidService, processService, logger);
+
+  const exitCode = await daemonManager.start();
+  process.exit(exitCode);
+}
+
+/**
+ * Handle the stop command
+ */
+async function handleStopCommand(): Promise<boolean> {
+  const logger = new Logger('Daemon');
+  const homeService = new NeuraHomeService();
+  const pidService = new PidService(homeService);
+  const processService = new ProcessService();
+  const daemonManager = new DaemonManager(pidService, processService, logger);
+
+  const exitCode = await daemonManager.stop();
+  process.exit(exitCode);
+}
+
+/**
+ * Handle the status command
+ */
+async function handleStatusCommand(): Promise<boolean> {
+  const logger = new Logger('Daemon');
+  const homeService = new NeuraHomeService();
+  const pidService = new PidService(homeService);
+  const processService = new ProcessService();
+  const daemonManager = new DaemonManager(pidService, processService, logger);
+
+  const exitCode = await daemonManager.status();
+  process.exit(exitCode);
 }
 
 /**

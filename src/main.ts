@@ -1,4 +1,5 @@
 import { createServer, setupGracefulShutdown, startServer } from '@bootstrap/server';
+import { handleCliCommand } from '@cli/bootstrap';
 import { Logger } from '@logging';
 import 'reflect-metadata';
 
@@ -10,7 +11,20 @@ async function bootstrap(): Promise<void> {
   await startServer(server);
 }
 
-bootstrap().catch((error: Error) => {
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+
+  // Handle CLI commands first
+  const commandHandled = await handleCliCommand(args);
+  if (commandHandled) {
+    return;
+  }
+
+  // Normal server startup
+  await bootstrap();
+}
+
+main().catch((error: Error) => {
   logger.error('Bootstrap failed', error);
   process.exit(1);
 });

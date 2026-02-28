@@ -22,6 +22,14 @@ const loggingConfigSchema = z.object({
   redactMask: z.string().default('[REDACTED]'),
   /** Fields to redact */
   redactFields: z.string().default('password,token,secret,apiKey,authorization'),
+  /** Enable file logging (auto-enabled in production if not specified) */
+  enableFileLogging: z.coerce.boolean().optional(),
+  /** Log retention period in days (default: 7) */
+  logRetentionDays: z.coerce.number().int().min(1).max(365).default(7),
+  /** Maximum log file size in MB (for future size-based rotation) */
+  maxLogSizeMB: z.coerce.number().int().min(1).max(1000).default(100),
+  /** Custom log directory (default: ~/.neura/logs) */
+  logDirectory: z.string().optional(),
 });
 
 /**
@@ -124,5 +132,41 @@ export class LoggingConfig extends BaseConfig<LoggingConfigType> {
   public get shouldUseJson(): boolean {
     if (this.config.json) return true;
     return this.config.engine === 'json-console';
+  }
+
+  /**
+   * Check if file logging is enabled
+   * Auto-enabled in production if not explicitly disabled
+   */
+  public get isFileLoggingEnabled(): boolean {
+    // If explicitly set, use that value
+    if (this.config.enableFileLogging !== undefined) {
+      return this.config.enableFileLogging;
+    }
+
+    // Auto-enable in production
+    const nodeEnv = process.env.NODE_ENV?.toLowerCase() ?? 'development';
+    return nodeEnv === 'production';
+  }
+
+  /**
+   * Get the log retention period in days
+   */
+  public get logRetentionDays(): number {
+    return this.config.logRetentionDays;
+  }
+
+  /**
+   * Get the maximum log file size in MB
+   */
+  public get maxLogSizeMB(): number {
+    return this.config.maxLogSizeMB;
+  }
+
+  /**
+   * Get the custom log directory path
+   */
+  public get logDirectory(): string | undefined {
+    return this.config.logDirectory;
   }
 }

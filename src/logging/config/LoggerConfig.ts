@@ -61,6 +61,30 @@ export interface LoggerConfigOptions {
    * @default '[REDACTED]'
    */
   readonly redactMask: string;
+
+  /**
+   * Whether to enable file logging
+   * @default false in development, true in production
+   */
+  readonly enableFileLogging?: boolean;
+
+  /**
+   * Log retention period in days
+   * @default 7
+   */
+  readonly logRetentionDays?: number;
+
+  /**
+   * Maximum log file size in MB (for future size-based rotation)
+   * @default 100
+   */
+  readonly maxLogSizeMB?: number;
+
+  /**
+   * Custom log directory path
+   * @default ~/.neura/logs
+   */
+  readonly logDirectory?: string;
 }
 
 /**
@@ -77,6 +101,10 @@ export class LoggerConfig implements LoggerConfigOptions {
   public readonly redactSensitive: boolean;
   public readonly redactFields: readonly string[];
   public readonly redactMask: string;
+  public readonly enableFileLogging: boolean | undefined;
+  public readonly logRetentionDays: number | undefined;
+  public readonly maxLogSizeMB: number | undefined;
+  public readonly logDirectory: string | undefined;
 
   private constructor(options: Partial<LoggerConfigOptions> = {}) {
     this.level = options.level ?? LogLevel.INFO;
@@ -89,6 +117,10 @@ export class LoggerConfig implements LoggerConfigOptions {
     this.redactSensitive = options.redactSensitive ?? true;
     this.redactFields = options.redactFields ?? DEFAULT_REDACT_FIELDS;
     this.redactMask = options.redactMask ?? '[REDACTED]';
+    this.enableFileLogging = options.enableFileLogging ?? this.detectFileLogging();
+    this.logRetentionDays = options.logRetentionDays ?? 7;
+    this.maxLogSizeMB = options.maxLogSizeMB ?? 100;
+    this.logDirectory = options.logDirectory;
   }
 
   /**
@@ -105,6 +137,10 @@ export class LoggerConfig implements LoggerConfigOptions {
       prettyPrint: parseBooleanEnv(process.env.LOG_PRETTY),
       redactSensitive: parseBooleanEnv(process.env.LOG_REDACT_SENSITIVE) ?? true,
       redactMask: process.env.LOG_REDACT_MASK,
+      enableFileLogging: parseBooleanEnv(process.env.LOG_ENABLE_FILE),
+      logRetentionDays: parseIntEnv(process.env.LOG_RETENTION_DAYS),
+      maxLogSizeMB: parseIntEnv(process.env.LOG_MAX_SIZE_MB),
+      logDirectory: process.env.LOG_DIRECTORY,
     };
 
     // Filter out undefined values
@@ -137,6 +173,10 @@ export class LoggerConfig implements LoggerConfigOptions {
       redactSensitive: options.redactSensitive ?? this.redactSensitive,
       redactFields: options.redactFields ?? this.redactFields,
       redactMask: options.redactMask ?? this.redactMask,
+      enableFileLogging: options.enableFileLogging ?? this.enableFileLogging,
+      logRetentionDays: options.logRetentionDays ?? this.logRetentionDays,
+      maxLogSizeMB: options.maxLogSizeMB ?? this.maxLogSizeMB,
+      logDirectory: options.logDirectory ?? this.logDirectory,
     });
   }
 
@@ -161,6 +201,15 @@ export class LoggerConfig implements LoggerConfigOptions {
   private detectPrettyPrint(): boolean {
     const nodeEnv = process.env.NODE_ENV?.toLowerCase() ?? 'development';
     return nodeEnv === 'development' || nodeEnv === 'test';
+  }
+
+  /**
+   * Detect if file logging should be enabled
+   * Auto-enabled in production if not explicitly disabled
+   */
+  private detectFileLogging(): boolean {
+    const nodeEnv = process.env.NODE_ENV?.toLowerCase() ?? 'development';
+    return nodeEnv === 'production';
   }
 }
 
@@ -210,6 +259,22 @@ function parseBooleanEnv(value: string | undefined): boolean | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Parse an integer environment variable
+ */
+function parseIntEnv(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) {
+    return undefined;
+  }
+
+  return parsed;
 }
 
 /**

@@ -2,10 +2,22 @@
   "name": "neura",
   "version": "1.0.0",
   "description": "An intelligent personal assistant framework with agent management, skill orchestration, and extensible AI capabilities - inspired by modern AI assistant architectures",
-  "main": "dist/main.js",
+  "main": "dist/src/main.js",
+  "bin": {
+    "neura": "./bin/neura"
+  },
+  "preferGlobal": true,
+  "_moduleAliases": {
+    "@logging": "dist/src/logging",
+    "@api": "dist/src/api",
+    "@config": "dist/src/config",
+    "@bootstrap": "dist/src/bootstrap",
+    "@cli": "dist/src/cli",
+    "@types": "dist/src/types"
+  },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/main.js",
+    "start": "node dist/src/main.js",
     "dev": "ts-node-dev --transpile-only --respawn --rs --clear -r reflect-metadata -r tsconfig-paths/register src/main.ts",
     "dev:typecheck": "ts-node-dev --respawn --rs --clear -r reflect-metadata -r tsconfig-paths/register src/main.ts",
     "lint": "eslint src test",
@@ -44,6 +56,7 @@
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
+    "@types/module-alias": "^2.0.4",
     "@types/node": "^25.3.2",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
@@ -64,6 +77,7 @@
     "@fastify/csrf-protection": "^7.1.0",
     "@fastify/helmet": "^13.0.2",
     "fastify": "^5.7.4",
+    "module-alias": "^2.3.4",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0",
     "zod": "^4.3.6"

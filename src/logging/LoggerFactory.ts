@@ -1,5 +1,7 @@
 import { getLoggerConfig, LoggerConfig } from './config/LoggerConfig';
+import { CompositeLoggerEngine } from './engines/CompositeLoggerEngine';
 import { ConsolePrettyEngine } from './engines/ConsolePrettyEngine';
+import { FileRollingEngine } from './engines/FileRollingEngine';
 import { JsonConsoleEngine } from './engines/JsonConsoleEngine';
 import type { ILoggerEngine } from './interfaces/ILoggerEngine';
 import { LogLevel } from './LogLevel';
@@ -10,6 +12,7 @@ import { LogLevel } from './LogLevel';
 export enum EngineType {
   CONSOLE_PRETTY = 'console-pretty',
   JSON_CONSOLE = 'json-console',
+  FILE_ROLLING = 'file-rolling',
   PINO = 'pino',
   WINSTON = 'winston',
   CUSTOM = 'custom',
@@ -36,6 +39,41 @@ export class LoggerFactory {
     // Determine engine type from environment or config
     const engineType = this.determineEngineType(config);
 
+    // Check if file logging is enabled
+    const isProduction = config.environment === 'production';
+    const fileLoggingEnabled = config.enableFileLogging ?? isProduction;
+
+    // Create console engine
+    const consoleEngine = this.createConsoleEngine(config, engineType);
+
+    // If file logging is not enabled, return console engine only
+    if (!fileLoggingEnabled) {
+      return consoleEngine;
+    }
+
+    // Create file rolling engine
+    const fileEngine = new FileRollingEngine({
+      level: config.level,
+      includeTimestamp: config.timestamp,
+      logDirectory: config.logDirectory,
+      retentionDays: config.logRetentionDays,
+      appName: config.appName,
+      appVersion: config.appVersion,
+      environment: config.environment,
+    });
+
+    // Initialize file engine (async, but we fire and forget for now)
+    // In production, this should be awaited before logging
+    void fileEngine.initialize();
+
+    // Return composite engine that logs to both console and file
+    return new CompositeLoggerEngine([consoleEngine, fileEngine], config.level);
+  }
+
+  /**
+   * Create a console engine based on configuration
+   */
+  private static createConsoleEngine(config: LoggerConfig, engineType: EngineType): ILoggerEngine {
     switch (engineType) {
       case EngineType.CONSOLE_PRETTY:
         return new ConsolePrettyEngine(config.level, config.timestamp, process.stdout);

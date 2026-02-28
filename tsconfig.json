@@ -12,6 +12,8 @@
       "@config/*": ["config/*"],
       "@config": ["config/index"],
       "@bootstrap/*": ["bootstrap/*"],
+      "@cli/*": ["cli/*"],
+      "@cli": ["cli/index"],
       "@types/*": ["types/*"]
     },
     "strict": true,

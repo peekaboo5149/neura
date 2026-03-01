@@ -1,23 +1,35 @@
-/* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 /**
  * Classify Intent Node Tests
  *
- * Tests for the classify.node.ts with mocked fetch API.
+ * Tests for the classify.node.ts with mocked OpenAI SDK.
  */
 
 import { QueryIntent } from '@api/query/query-intent.enum';
 import { GraphState } from '../../core/types';
 import { createClassifyIntentNode } from './classify.node';
 
+// Mock OpenAI SDK
+const mockCreate = jest.fn();
+
+jest.mock('openai', () => {
+  return jest.fn().mockImplementation(() => ({
+    chat: {
+      completions: {
+        create: mockCreate,
+      },
+    },
+  }));
+});
+
 describe('ClassifyIntentNode', () => {
-  const mockFetch = jest.fn();
-  global.fetch = mockFetch;
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   const createNode = () =>
     createClassifyIntentNode({
@@ -37,26 +49,19 @@ describe('ClassifyIntentNode', () => {
     context: {},
   });
 
-  beforeEach(() => {
-    mockFetch.mockClear();
-  });
-
   describe('successful classification', () => {
     it('should classify FILE_READ intent', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.FILE_READ,
-                  reason: 'Query involves reading a file',
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.FILE_READ,
+                reason: 'Query involves reading a file',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -69,20 +74,17 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should classify PACKAGE_MANAGEMENT intent', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.PACKAGE_MANAGEMENT,
-                  reason: 'Installing a package',
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.PACKAGE_MANAGEMENT,
+                reason: 'Installing a package',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -93,20 +95,17 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should classify UNKNOWN intent', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.UNKNOWN,
-                  reason: 'Query is outside scope',
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.UNKNOWN,
+                reason: 'Query is outside scope',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -117,19 +116,16 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should use default reason if not provided', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.FILE_READ,
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.FILE_READ,
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -141,27 +137,22 @@ describe('ClassifyIntentNode', () => {
   });
 
   describe('API error handling', () => {
-    it('should handle non-ok response', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: async () => 'Unauthorized',
-      });
+    it('should handle API error response', async () => {
+      const error = new Error('401 Unauthorized');
+      error.name = 'APIError';
+      mockCreate.mockRejectedValueOnce(error);
 
       const node = createNode();
       const state = createMockState('Some query');
       const result = await node(state);
 
       expect(result.results?.intent?.intent).toBe(QueryIntent.UNKNOWN);
-      expect(result.results?.intent?.reason).toContain('API error: 401');
+      expect(result.results?.intent?.reason).toContain('401 Unauthorized');
     });
 
     it('should handle empty response content', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [],
-        }),
+      mockCreate.mockResolvedValueOnce({
+        choices: [],
       });
 
       const node = createNode();
@@ -173,15 +164,12 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should handle missing message content', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {},
-            },
-          ],
-        }),
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {},
+          },
+        ],
       });
 
       const node = createNode();
@@ -194,17 +182,14 @@ describe('ClassifyIntentNode', () => {
 
   describe('JSON parsing errors', () => {
     it('should handle invalid JSON in response', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: 'not valid json',
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: 'not valid json',
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -216,20 +201,17 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should handle invalid intent value', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: 'INVALID_INTENT',
-                  reason: 'Some reason',
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: 'INVALID_INTENT',
+                reason: 'Some reason',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
@@ -242,8 +224,8 @@ describe('ClassifyIntentNode', () => {
   });
 
   describe('network errors', () => {
-    it('should handle fetch throwing error', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    it('should handle SDK throwing error', async () => {
+      mockCreate.mockRejectedValueOnce(new Error('Network error'));
 
       const node = createNode();
       const state = createMockState('Some query');
@@ -254,7 +236,7 @@ describe('ClassifyIntentNode', () => {
     });
 
     it('should handle non-Error throw', async () => {
-      mockFetch.mockRejectedValueOnce('String error');
+      mockCreate.mockRejectedValueOnce('String error');
 
       const node = createNode();
       const state = createMockState('Some query');
@@ -266,63 +248,53 @@ describe('ClassifyIntentNode', () => {
   });
 
   describe('request configuration', () => {
-    it('should call fetch with correct parameters', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.FILE_READ,
-                  reason: 'Test',
-                }),
-              },
+    it('should call OpenAI with correct parameters', async () => {
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.FILE_READ,
+                reason: 'Test',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();
       const state = createMockState('Read file');
       await node(state);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.openai.com/v1/chat/completions',
+      expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer test-api-key',
-            'Content-Type': 'application/json',
-          },
-          body: expect.stringContaining('gpt-4'),
+          model: 'gpt-4',
+          temperature: 0.1,
+          messages: expect.arrayContaining([
+            expect.objectContaining({ role: 'system' }),
+            expect.objectContaining({
+              role: 'user',
+              content: expect.stringContaining('Read file'),
+            }),
+          ]),
         })
       );
-
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(callBody.model).toBe('gpt-4');
-      expect(callBody.temperature).toBe(0.1);
-      expect(callBody.messages).toHaveLength(2);
-      expect(callBody.messages[1].content).toContain('Read file');
     });
   });
 
   describe('state preservation', () => {
     it('should preserve existing results', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  intent: QueryIntent.FILE_READ,
-                  reason: 'Test',
-                }),
-              },
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: QueryIntent.FILE_READ,
+                reason: 'Test',
+              }),
             },
-          ],
-        }),
+          },
+        ],
       });
 
       const node = createNode();

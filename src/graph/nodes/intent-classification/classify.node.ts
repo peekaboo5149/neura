@@ -6,6 +6,7 @@
  */
 
 import { QueryIntent, QueryIntentMetadata } from '@api/query/query-intent.enum';
+import OpenAI from 'openai';
 import { GraphNode, GraphState } from '../../core/types';
 import { ClassificationResult, ClassifyIntentNodeDependencies } from './types';
 
@@ -54,7 +55,7 @@ Respond with a JSON object containing:
 }
 
 /**
- * Call OpenAI API for classification
+ * Call OpenAI API for classification using OpenAI SDK
  */
 async function callOpenAI(
   input: string,
@@ -62,43 +63,22 @@ async function callOpenAI(
 ): Promise<ClassificationResult> {
   const systemPrompt = buildSystemPrompt();
 
+  // Create OpenAI client
+  const client = new OpenAI({
+    apiKey: deps.apiKey,
+  });
+
   try {
-    // eslint-disable-next-line no-undef
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${deps.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: deps.model,
-        temperature: deps.temperature,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Classify this query: "${input}"` },
-        ],
-      }),
+    const response = await client.chat.completions.create({
+      model: deps.model,
+      temperature: deps.temperature,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Classify this query: "${input}"` },
+      ],
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        intent: QueryIntent.UNKNOWN,
-        reason: `API error: ${response.status} - ${errorText}`,
-        success: false,
-        error: `API error: ${response.status}`,
-      };
-    }
-
-    const data = (await response.json()) as {
-      choices: Array<{
-        message: {
-          content: string;
-        };
-      }>;
-    };
-
-    const content = data.choices[0]?.message?.content;
+    const content = response.choices[0]?.message?.content;
 
     if (!content) {
       return {

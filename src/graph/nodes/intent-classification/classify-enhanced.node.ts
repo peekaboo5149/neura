@@ -11,10 +11,10 @@
  */
 
 import { QueryIntent } from '@api/query/query-intent.enum';
+import { IntentDescriptionService } from '@services/intent-description';
 import OpenAI from 'openai';
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
-import { IntentDescriptionService } from '../../../services/intent-description';
 import { GraphNode, GraphState } from '../../core/types';
 import { ClassificationResult, ClassifyIntentNodeDependencies } from './types';
 

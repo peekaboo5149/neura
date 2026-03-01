@@ -1,18 +1,18 @@
 /**
- * Hybrid Classify Intent Node
+ * OOS-Enhanced Hybrid Classify Intent Node
  *
- * Node that implements hybrid classification with uncertainty-based routing.
- * Implements Phase 3 from "Intent Detection in the Age of LLMs" research.
+ * Node that combines hybrid classification with two-step OOS detection.
+ * Implements Phase 5 from "Intent Detection in the Age of LLMs" research.
  *
  * Architecture:
- * 1. Lightweight classifier (fast similarity-based) as first stage
- * 2. Uncertainty estimation via Monte Carlo-style sampling
- * 3. LLM fallback for uncertain queries
+ * 1. Lightweight classifier for fast path
+ * 2. Two-step OOS detection for uncertain queries
+ * 3. LLM fallback with OOS awareness
  *
  * Benefits:
- * - ~50% latency reduction for confident predictions
- * - Maintains LLM accuracy for edge cases
- * - Configurable uncertainty threshold
+ * - >5% improvement in OOS accuracy and F1-score
+ * - Better handling of ambiguous queries
+ * - No LLM fine-tuning required
  */
 
 import { QueryIntent } from '@api/query/query-intent.enum';
@@ -20,6 +20,7 @@ import {
     ExampleStoreService,
     IntentDescriptionService,
     LightweightClassifierService,
+    OOSDetectionService,
 } from '@services';
 import OpenAI from 'openai';
 import 'reflect-metadata';
@@ -27,53 +28,52 @@ import { inject, injectable } from 'tsyringe';
 import { GraphNode, GraphState } from '../../core/types';
 import { ClassificationResult, ClassifyIntentNodeDependencies } from './types';
 
-export const HybridClassifyConfigToken = Symbol('HybridClassifyConfig');
+export const OOSEnhancedConfigToken = Symbol('OOSEnhancedConfig');
 
-export interface HybridClassifyDependencies extends ClassifyIntentNodeDependencies {
+export interface OOSEnhancedDependencies extends ClassifyIntentNodeDependencies {
   lightweightClassifier: LightweightClassifierService;
   intentDescriptionService: IntentDescriptionService;
   exampleStoreService: ExampleStoreService;
-  useAdaptiveICL?: boolean;
+  oosDetectionService: OOSDetectionService;
 }
 
-export interface HybridClassificationResult extends ClassificationResult {
+export interface OOSEnhancedResult extends ClassificationResult {
   routing: {
     usedLightweight: boolean;
+    usedOOSDetection: boolean;
     usedLLM: boolean;
-    uncertainty: {
-      meanConfidence: number;
-      variance: number;
-      isUncertain: boolean;
+    oosAnalysis?: {
+      isOOS: boolean;
+      entropy: number;
+      confidenceGap: number;
     };
   };
 }
 
 @injectable()
-export class HybridClassifyIntentNode {
+export class OOSEnhancedClassifyIntentNode {
   private client: OpenAI;
   private model: string;
   private temperature: number;
   private lightweightClassifier: LightweightClassifierService;
   private descriptionService: IntentDescriptionService;
-  private exampleStore: ExampleStoreService;
-  private useAdaptiveICL: boolean;
+  private oosDetectionService: OOSDetectionService;
   private cachedSystemPrompt: string | null = null;
 
   constructor(
-    @inject(HybridClassifyConfigToken)
-    deps: HybridClassifyDependencies
+    @inject(OOSEnhancedConfigToken)
+    deps: OOSEnhancedDependencies
   ) {
     this.client = new OpenAI({ apiKey: deps.apiKey });
     this.model = deps.model;
     this.temperature = deps.temperature;
     this.lightweightClassifier = deps.lightweightClassifier;
     this.descriptionService = deps.intentDescriptionService;
-    this.exampleStore = deps.exampleStoreService;
-    this.useAdaptiveICL = deps.useAdaptiveICL ?? true;
+    this.oosDetectionService = deps.oosDetectionService;
   }
 
   /**
-   * Initialize the node (must be called before use)
+   * Initialize the node
    */
   async initialize(): Promise<void> {
     await this.lightweightClassifier.initializePrototypes();
@@ -96,57 +96,75 @@ export class HybridClassifyIntentNode {
         },
         metadata: {
           ...state.metadata,
-          nodeExecutionLog: [...state.metadata.nodeExecutionLog, 'classifyIntentHybrid'],
+          nodeExecutionLog: [...state.metadata.nodeExecutionLog, 'classifyIntentOOSEnhanced'],
         },
       };
     };
   }
 
   /**
-   * Hybrid classification with routing
+   * OOS-enhanced hybrid classification
    */
-  private async classify(input: string): Promise<HybridClassificationResult> {
+  private async classify(input: string): Promise<OOSEnhancedResult> {
     const startTime = Date.now();
 
     try {
-      // Stage 1: Lightweight classification with uncertainty
+      // Stage 1: Lightweight classification
       const routing = await this.lightweightClassifier.classifyWithRouting(input);
 
-      // Stage 2: Route based on uncertainty
+      // If lightweight classifier is confident, use it
       if (!routing.shouldUseLLM) {
-        // Fast path: Use lightweight classifier result
         const duration = Date.now() - startTime;
-
         return {
           intent: routing.prediction.intent,
-          reason: `Fast classification (confidence: ${(routing.prediction.confidence * 100).toFixed(1)}%, variance: ${routing.uncertainty.variance.toFixed(4)}, duration: ${duration}ms)`,
+          reason: `Fast classification (confidence: ${(routing.prediction.confidence * 100).toFixed(1)}%, ${duration}ms)`,
           success: true,
           routing: {
             usedLightweight: true,
+            usedOOSDetection: false,
             usedLLM: false,
-            uncertainty: {
-              meanConfidence: routing.uncertainty.meanConfidence,
-              variance: routing.uncertainty.variance,
-              isUncertain: routing.uncertainty.isUncertain,
+          },
+        };
+      }
+
+      // Stage 2: Two-step OOS detection for uncertain queries
+      const oosResult = await this.oosDetectionService.detectOOS(input);
+
+      // If OOS detected, classify as UNKNOWN
+      if (oosResult.isOOS) {
+        const duration = Date.now() - startTime;
+        return {
+          intent: QueryIntent.UNKNOWN,
+          reason: `OOS detected: ${oosResult.reasoning} (${duration}ms)`,
+          success: true,
+          routing: {
+            usedLightweight: true,
+            usedOOSDetection: true,
+            usedLLM: false,
+            oosAnalysis: {
+              isOOS: oosResult.isOOS,
+              entropy: oosResult.entropy,
+              confidenceGap: oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
             },
           },
         };
       }
 
-      // Slow path: Use LLM for uncertain queries
-      const llmResult = await this.classifyWithLLM(input);
+      // Stage 3: LLM fallback for in-scope but uncertain queries
+      const llmResult = await this.classifyWithLLM(input, oosResult.topIntent);
       const duration = Date.now() - startTime;
 
       return {
         ...llmResult,
-        reason: `${llmResult.reason} (LLM fallback due to uncertainty: variance=${routing.uncertainty.variance.toFixed(4)}, duration: ${duration}ms)`,
+        reason: `${llmResult.reason} (LLM fallback after OOS check: entropy=${oosResult.entropy.toFixed(2)}, ${duration}ms)`,
         routing: {
           usedLightweight: true,
+          usedOOSDetection: true,
           usedLLM: true,
-          uncertainty: {
-            meanConfidence: routing.uncertainty.meanConfidence,
-            variance: routing.uncertainty.variance,
-            isUncertain: routing.uncertainty.isUncertain,
+          oosAnalysis: {
+            isOOS: oosResult.isOOS,
+            entropy: oosResult.entropy,
+            confidenceGap: oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
           },
         },
       };
@@ -160,21 +178,20 @@ export class HybridClassifyIntentNode {
         error: errorMessage,
         routing: {
           usedLightweight: false,
+          usedOOSDetection: false,
           usedLLM: false,
-          uncertainty: {
-            meanConfidence: 0,
-            variance: 1,
-            isUncertain: true,
-          },
         },
       };
     }
   }
 
   /**
-   * Classify using LLM (fallback for uncertain queries)
+   * Classify using LLM with OOS awareness
    */
-  private async classifyWithLLM(input: string): Promise<ClassificationResult> {
+  private async classifyWithLLM(
+    input: string,
+    suggestedIntent: QueryIntent
+  ): Promise<ClassificationResult> {
     const systemPrompt = await this.getSystemPrompt();
 
     const response = await this.client.chat.completions.create({
@@ -182,7 +199,13 @@ export class HybridClassifyIntentNode {
       temperature: this.temperature,
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Classify this query: "${input}"` },
+        {
+          role: 'user',
+          content: `Classify this query: "${input}"
+
+Hint: The query appears to be related to "${suggestedIntent}" based on initial analysis.
+If this query is outside Neura's scope (general knowledge, personal questions, etc.), classify as UNKNOWN.`,
+        },
       ],
       response_format: { type: 'json_object' },
     });
@@ -211,34 +234,13 @@ export class HybridClassifyIntentNode {
   }
 
   /**
-   * Get system prompt (with optional ICL)
+   * Get system prompt
    */
   private async getSystemPrompt(): Promise<string> {
     if (!this.cachedSystemPrompt) {
       this.cachedSystemPrompt = await this.descriptionService.buildEnhancedSystemPrompt();
     }
-
-    if (!this.useAdaptiveICL) {
-      return this.cachedSystemPrompt;
-    }
-
-    // Add ICL examples
-    const iclExamples = await this.exampleStore.getICLExamples('placeholder', 3);
-
-    if (iclExamples.length === 0) {
-      return this.cachedSystemPrompt;
-    }
-
-    const iclSection = `=== SIMILAR EXAMPLES ===
-
-${iclExamples
-  .map(
-    (ex, idx) => `${idx + 1}. Query: "${ex.query}"
-   Intent: ${ex.intent}`
-  )
-  .join('\n\n')}`;
-
-    return `${this.cachedSystemPrompt}\n\n${iclSection}`;
+    return this.cachedSystemPrompt;
   }
 
   /**
@@ -260,28 +262,15 @@ ${iclExamples
     this.cachedSystemPrompt = null;
     this.descriptionService.clearCache();
   }
-
-  /**
-   * Get classifier statistics
-   */
-  getStats(): {
-    lightweight: ReturnType<LightweightClassifierService['getStats']>;
-    exampleStore: ReturnType<ExampleStoreService['getStats']>;
-  } {
-    return {
-      lightweight: this.lightweightClassifier.getStats(),
-      exampleStore: this.exampleStore.getStats(),
-    };
-  }
 }
 
 /**
- * Factory function for creating hybrid classify node
+ * Factory function for creating OOS-enhanced classify node
  */
-export async function createHybridClassifyIntentNode(
-  deps: HybridClassifyDependencies
+export async function createOOSEnhancedClassifyIntentNode(
+  deps: OOSEnhancedDependencies
 ): Promise<GraphNode> {
-  const node = new HybridClassifyIntentNode(deps);
+  const node = new OOSEnhancedClassifyIntentNode(deps);
   await node.initialize();
   return node.createNode();
 }

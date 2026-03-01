@@ -16,7 +16,8 @@
     "@cli": "dist/src/cli",
     "@daemon": "dist/src/daemon",
     "@types": "dist/src/types",
-    "@tools": "dist/src/tools"
+    "@tools": "dist/src/tools",
+    "@services": "dist/src/services"
   },
   "scripts": {
     "build": "tsc",

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+- name: Documentation
+  url: https://github.com/peekaboo5149/neura/tree/main/docs
+  about: Check the documentation before creating an issue
+- name: Discussions
+  url: https://github.com/peekaboo5149/neura/discussions
+  about: Ask questions and discuss ideas in GitHub Discussions

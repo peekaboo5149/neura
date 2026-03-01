@@ -1,11 +1,12 @@
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
 import { QueryIntent } from '../query-intent.enum';
 
 /**
  * Zod schema for intent classification output.
- * Used for structured output parsing with LangChain.
+ * Used for structured output parsing.
  */
 export const IntentClassificationSchema = z.object({
   intent: z
@@ -22,10 +23,54 @@ export const IntentClassificationSchema = z.object({
 export type IntentClassificationOutput = z.infer<typeof IntentClassificationSchema>;
 
 /**
- * IntentClassificationChain - LangChain chain for query intent classification.
+ * State annotation for the classification graph.
+ * Uses LangGraph's Annotation system for type-safe state management.
+ */
+const ClassificationState = Annotation.Root({
+  /** The input query to classify */
+  query: Annotation<string>({ value: (_prev, next) => next }),
+
+  /** The classified intent (set by model node) */
+  intent: Annotation<QueryIntent | undefined>({
+    default: () => undefined,
+    value: (_prev, next) => next,
+  }),
+
+  /** Reasoning for the classification (set by model node) */
+  reason: Annotation<string | undefined>({
+    default: () => undefined,
+    value: (_prev, next) => next,
+  }),
+
+  /** Error message if classification fails */
+  error: Annotation<string | undefined>({
+    default: () => undefined,
+    value: (_prev, next) => next,
+  }),
+
+  /** System prompt with format instructions (built by prepare node) */
+  systemPrompt: Annotation<string | undefined>({
+    default: () => undefined,
+    value: (_prev, next) => next,
+  }),
+
+  /** Raw model response content */
+  rawResponse: Annotation<string | undefined>({
+    default: () => undefined,
+    value: (_prev, next) => next,
+  }),
+});
+
+/**
+ * Type alias for the classification state.
+ */
+type ClassificationStateType = typeof ClassificationState.State;
+
+/**
+ * IntentClassificationChain - LangGraph-based chain for query intent classification.
  *
- * Uses direct message construction to avoid template parsing issues with
- * format instructions containing curly braces.
+ * Uses StateGraph to model the classification workflow as a directed graph
+ * with nodes for prompt preparation, model invocation, and output parsing.
  *
  * Usage:
  * ```typescript
@@ -37,10 +82,12 @@ export type IntentClassificationOutput = z.infer<typeof IntentClassificationSche
 export class IntentClassificationChain {
   private readonly model: ChatOpenAI;
   private readonly parser: StructuredOutputParser<typeof IntentClassificationSchema>;
+  private readonly graph: ReturnType<typeof this.buildGraph>;
 
   private constructor(model: ChatOpenAI) {
     this.model = model;
     this.parser = StructuredOutputParser.fromZodSchema(IntentClassificationSchema);
+    this.graph = this.buildGraph();
   }
 
   /**
@@ -68,29 +115,41 @@ export class IntentClassificationChain {
    * @returns Classification result with intent and reasoning
    */
   async classify(query: string): Promise<IntentClassificationOutput> {
-    const systemPrompt = this.buildSystemPrompt();
-    const humanPrompt = `Classify this query: "${query}"`;
+    try {
+      const finalState = await this.graph.invoke({ query });
 
-    const response = await this.model.invoke([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: humanPrompt },
-    ]);
+      if (finalState.error) {
+        return {
+          intent: QueryIntent.UNKNOWN,
+          reason: `Classification failed: ${finalState.error}`,
+        };
+      }
 
-    const content =
-      typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
-
-    return this.parser.parse(content);
+      return {
+        intent: finalState.intent ?? QueryIntent.UNKNOWN,
+        reason: finalState.reason ?? 'No reason provided',
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        intent: QueryIntent.UNKNOWN,
+        reason: `Classification failed: ${errorMessage}`,
+      };
+    }
   }
 
   /**
-   * Build the system prompt with embedded format instructions.
-   * Uses string replacement to avoid template parsing issues.
+   * Build the LangGraph state graph for classification.
    */
-  private buildSystemPrompt(): string {
-    const formatInstructions = this.parser.getFormatInstructions();
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  private buildGraph() {
+    // Node 1: Prepare the system prompt with format instructions
+    const preparePromptNode = (
+      _state: ClassificationStateType
+    ): Partial<ClassificationStateType> => {
+      const formatInstructions = this.parser.getFormatInstructions();
 
-    return `
-You are a strict security-focused intent classifier for Neura.
+      const systemPrompt = `You are a strict security-focused intent classifier for Neura.
 
 Neura ONLY handles:
 - Files and directories
@@ -113,7 +172,73 @@ When uncertain, choose the MORE RESTRICTIVE intent.
 
 Classify into exactly one valid intent.
 
-${formatInstructions}
-`;
+${formatInstructions}`;
+
+      return { systemPrompt };
+    };
+
+    // Node 2: Call the LLM model
+    const callModelNode = async (
+      state: ClassificationStateType
+    ): Promise<Partial<ClassificationStateType>> => {
+      const humanPrompt = `Classify this query: "${state.query}"`;
+
+      const response = await this.model.invoke([
+        { role: 'system', content: state.systemPrompt! },
+        { role: 'user', content: humanPrompt },
+      ]);
+
+      const rawResponse =
+        typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
+
+      return { rawResponse };
+    };
+
+    // Node 3: Parse the model output
+    const parseOutputNode = async (
+      state: ClassificationStateType
+    ): Promise<Partial<ClassificationStateType>> => {
+      try {
+        const parsed = await this.parser.parse(state.rawResponse!);
+        return {
+          intent: parsed.intent,
+          reason: parsed.reason,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { error: errorMessage };
+      }
+    };
+
+    // Node 4: Handle errors
+    const handleErrorNode = (state: ClassificationStateType): Partial<ClassificationStateType> => {
+      return {
+        intent: QueryIntent.UNKNOWN,
+        reason: `Classification failed: ${state.error}`,
+      };
+    };
+
+    // Build the state graph using the Annotation-based API
+    const workflow = new StateGraph(ClassificationState)
+      // Add nodes
+      .addNode('preparePrompt', preparePromptNode)
+      .addNode('callModel', callModelNode)
+      .addNode('parseOutput', parseOutputNode)
+      .addNode('handleError', handleErrorNode)
+
+      // Add edges
+      .addEdge(START, 'preparePrompt')
+      .addEdge('preparePrompt', 'callModel')
+      .addEdge('callModel', 'parseOutput')
+
+      // Conditional edge: if error occurred, go to error handler, otherwise end
+      .addConditionalEdges('parseOutput', (state) => {
+        return state.error ? 'handleError' : END;
+      })
+
+      .addEdge('handleError', END);
+
+    // Compile and return the graph
+    return workflow.compile();
   }
 }

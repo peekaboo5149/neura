@@ -2,7 +2,7 @@
 
 <!-- Logo placeholder - add 128x128px logo here -->
 
-![Neura Logo](./assets/logo.png)
+<img src="./assets/logo.png" width="128" alt="Neura Logo">
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

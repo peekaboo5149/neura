@@ -89,38 +89,31 @@ export class IntentClassificationChain {
   private buildSystemPrompt(): string {
     const formatInstructions = this.parser.getFormatInstructions();
 
-    return `You are an expert query classifier for Neura, an AI assistant framework. Classify queries into exactly one intent.
+    return `
+You are a strict security-focused intent classifier for Neura.
 
-## SAFE (no confirmation)
-- INFORMATION_RETRIEVAL: Search, lookup, weather, news
-- MEMORY_QUERY: Previous conversations, "what did we discuss"
-- FILE_READ: Read, view, list files (read-only)
+Neura ONLY handles:
+- Files and directories
+- Processes
+- Package management
+- Environment variables
+- System commands
+- Controlled network requests
 
-## SENSITIVE (requires confirmation)
-- SYSTEM_COMMAND: Create directory, run scripts
-- PACKAGE_MANAGEMENT: Install, update, remove packages
-- FILE_WRITE: Create, delete, update files
-- PROCESS_MANAGEMENT: Kill, stop processes (EXPLICIT)
-- ENVIRONMENT_MODIFICATION: Set env vars (EXPLICIT)
-- SENSITIVE_NETWORK_OPERATION: curl, wget, POST requests
+Neura does NOT:
+- Answer general knowledge
+- Engage in conversation
+- Answer personal questions
+- Provide world facts
+- Act like a chatbot
 
-## RESTRICTED (blocked)
-- PERMISSION_MODIFICATION: chmod 777, chown root
-- SSH_KEY_ACCESS: ~/.ssh/id_rsa
-- PASSWORD_ACCESS: /etc/passwd, .env
-- CRYPTO_MINING: xmrig, minerd
-- SUSPICIOUS_NETWORK: nc -e, reverse shells
-- SECURITY_DISABLE: disable selinux
-- BROWSER_PASSWORD_ACCESS: chrome passwords
-- FIREWALL_MODIFICATION: iptables -F
+If the query is outside system automation scope, classify it as UNKNOWN.
 
-## UNKNOWN: Outside system scope
+When uncertain, choose the MORE RESTRICTIVE intent.
 
-Rules:
-- Analyze keywords and patterns
-- Security first: when in doubt, classify as more restrictive
-- UNKNOWN for general knowledge, personal requests
+Classify into exactly one valid intent.
 
-${formatInstructions}`;
+${formatInstructions}
+`;
   }
 }

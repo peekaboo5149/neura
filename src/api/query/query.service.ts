@@ -48,6 +48,16 @@ export class QueryService {
   ): Promise<QueryExecutionResult> {
     this.logger.info('Query received', { query, model: this.openAIConfig.model });
 
+    // Step 0: Check if the query is clearly out of scope
+    if (this.isClearlyOutOfScope(query)) {
+      return {
+        intent: QueryIntent.UNKNOWN,
+        reason: 'Query outside system automation scope',
+        classification: SecurityClassification.SAFE,
+        canExecute: false,
+      };
+    }
+
     // Step 1: Classify the query intent using LangChain
     const classification = await this.classifyQuery(query);
     this.logger.info('Query classified', {
@@ -100,5 +110,26 @@ export class QueryService {
         reason: `Classification failed: ${errorToLog.message}`,
       };
     }
+  }
+
+  /**
+   * Determine if a query is clearly out of scope for the assistant.
+   *
+   * @param query - The user's query
+   * @returns True if the query is out of scope, false otherwise
+   */
+  private isClearlyOutOfScope(query: string): boolean {
+    const patterns = [
+      /^who\s/i,
+      /^what\s/i,
+      /^where\s/i,
+      /^when\s/i,
+      /^tell\sme/i,
+      /^explain/i,
+      /^joke/i,
+      /^buy\sme/i,
+    ];
+
+    return patterns.some((p) => p.test(query.trim()));
   }
 }

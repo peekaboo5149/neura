@@ -1,171 +1,149 @@
 # Neura
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Fastify](https://img.shields.io/badge/Fastify-5.7-black?logo=fastify)](https://www.fastify.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+<!-- Logo placeholder - add 128x128px logo here -->
 
-An intelligent personal assistant framework with agent management, skill
-orchestration, and extensible AI capabilities. Built with enterprise-grade
-architecture patterns for production-ready deployments.
+![Neura Logo](./assets/logo.png)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/status-under%20development-orange)]()
+
+> A secure AI-powered local automation runtime controlled through messaging
+> platforms.
+
+---
+
+## What is Neura?
+
+Neura is a local system automation runtime that transforms natural language
+commands from messaging platforms into secure, validated system operations. It
+runs on your machine, receives commands via messaging interfaces, and executes
+them through a security-first intent classification engine.
+
+**Execution Flow:**
+
+```
+Messaging Platform → Neura Runtime → Intent Classification → Security Layer → Execution Engine
+```
+
+**Example:**
+
+```
+WhatsApp: "Deploy the production build"
+    ↓
+Neura: [Classifies: system_command] [Security: sensitive] [Confirmation required]
+    ↓
+User: "Confirm"
+    ↓
+Neura: [Executes deployment script] [Returns status]
+```
+
+---
+
+## Architecture
+
+![Neura Architecture](./assets/architecture.png)
+
+Neura operates as a distributed command system with a central server and local
+runtime agents:
+
+1. **Command Ingestion** - Neura Server receives commands from messaging
+   platforms (WhatsApp, Telegram, HTTP API)
+2. **Intent Classification** - AI-driven analysis categorizes commands into
+   structured intents
+3. **Dispatch & Validation** - Commands are routed to target user PCs with
+   security classification and confirmation policies applied
+4. **Local Execution** - Neura runtime on the user's machine performs validated
+   system operations with full audit logging
+
+---
+
+## Core Capabilities
+
+| Capability                 | Description                                                            |
+| -------------------------- | ---------------------------------------------------------------------- |
+| **Intent Classification**  | AI-driven analysis of natural language into structured system intents  |
+| **Security Validation**    | Risk-based classification with confirmation level enforcement          |
+| **Controlled Automation**  | System operations executed within defined security boundaries          |
+| **AI-Assisted Validation** | Command interpretation with reasoning and confidence scoring           |
+| **Local Runtime**          | All processing occurs on the user's machine; no cloud execution        |
+| **Audit Logging**          | Comprehensive logging of all commands, classifications, and executions |
+
+---
+
+## Security Model
+
+Neura implements a defense-in-depth security architecture:
+
+### Confirmation Levels
+
+| Level             | Behavior                             | Applicable Operations                              |
+| ----------------- | ------------------------------------ | -------------------------------------------------- |
+| **None**          | Immediate execution                  | Read-only operations, information retrieval        |
+| **Simple**        | Single confirmation                  | Standard system commands, package management       |
+| **Explicit**      | Detailed confirmation with reasoning | Destructive operations, process management         |
+| **Authenticated** | Multi-factor verification            | Security-critical operations, privilege escalation |
+
+### Operation Classifications
+
+- **SAFE** - Read operations, low risk
+- **SENSITIVE** - State-modifying operations requiring confirmation
+- **RESTRICTED** - Security-sensitive operations blocked by policy
+- **OUT OF SCOPE** - Non-automation queries rejected
+
+### Security Boundaries
+
+Neura explicitly blocks:
+
+- Credential access (SSH keys, passwords, tokens)
+- Permission escalation attempts
+- Suspicious network operations
+- Security feature disablement
+- Cryptocurrency mining
+- General knowledge queries (out of scope)
+
+---
+
+## Intended Use Cases
+
+- **Remote System Administration** - Manage servers via messaging platforms
+- **Development Operations** - Deploy builds, manage environments remotely
+- **Infrastructure Automation** - Execute maintenance tasks with mobile
+  confirmation
+- **Secure Command Relay** - Controlled system access without direct shell
+  exposure
+
+---
+
+## Non-Goals
+
+Neura is explicitly **not**:
+
+- A chatbot or conversational interface
+- A general knowledge Q&A system
+- A cloud-based execution service
+- A general-purpose LLM interface
+- An uncontrolled automation system
+
+---
 
 ## Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture Overview](#architecture-overview)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Development](#development)
-- [Testing](#testing)
-- [Future Extensibility](#future-extensibility)
+- [Quick Start](#quick-start)
+- [Example Usage](#example-usage)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [License](#license)
 
-## Features
+---
 
-- **Agent Management**: Lifecycle management and orchestration of AI agents
-- **Skill Management**: Modular skill registration and composition system
-- **Enterprise Logging**: Structured logging with multiple engines (JSON,
-  Pretty), log levels, and AsyncLocalStorage-based trace context propagation
-- **Dependency Injection**: Clean architecture with tsyringe DI container
-- **Configuration Management**: Type-safe, validated configuration using Zod
-  schemas with fail-fast validation
-- **Security**: Built-in security headers (Helmet), CORS, and CSRF protection
-- **Graceful Shutdown**: Proper signal handling for zero-downtime deployments
-- **Path Aliases**: Clean imports with TypeScript path mapping
-
-## Tech Stack
-
-| Category            | Technology                                               |
-| ------------------- | -------------------------------------------------------- |
-| **Runtime**         | Node.js 18+                                              |
-| **Language**        | TypeScript 5.9                                           |
-| **Framework**       | Fastify 5.7                                              |
-| **Security**        | @fastify/helmet, @fastify/cors, @fastify/csrf-protection |
-| **DI Container**    | tsyringe                                                 |
-| **Validation**      | Zod                                                      |
-| **Testing**         | Jest, ts-jest                                            |
-| **Linting**         | ESLint, @typescript-eslint                               |
-| **Formatting**      | Prettier                                                 |
-| **Package Manager** | pnpm                                                     |
-
-## Architecture Overview
-
-### Logging Architecture
-
-The logging system follows a clean architecture with swappable engines:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Logger                              │
-│  - Business logic, filtering, context enrichment           │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-        ┌────────────┴────────────┐
-        │                         │
-┌───────▼────────┐      ┌────────▼────────┐
-│ ConsolePretty  │      │  JsonConsole    │
-│   Engine       │      │    Engine       │
-│                │      │                 │
-│ Human-readable │      │ Structured JSON │
-│ output         │      │ for log aggregation
-└────────────────┘      └─────────────────┘
-```
-
-**Key Features:**
-
-- **ILoggerEngine Interface**: Abstract interface for pluggable log engines
-- **LogLevel Enum**: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, SILENT
-- **AsyncLocalStorage Context**: Automatic trace ID propagation across async
-  boundaries
-- **Metadata Redaction**: Automatic PII/sensitive data redaction
-- **Multiple Output Formats**: Pretty console for dev, JSON for production
-
-### DI + Configuration Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ConfigRegistry                           │
-│              (Registry Pattern - Singleton)                 │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┐
-        │            │            │
-┌───────▼──────┐ ┌───▼────┐ ┌────▼──────┐
-│ ServerConfig │ │Logging │ │  Future   │
-│              │ │ Config │ │  Configs  │
-└──────────────┘ └────────┘ └───────────┘
-        │            │            │
-        └────────────┴────────────┘
-                     │
-        ┌────────────▼────────────┐
-        │      DI Container       │
-        │      (tsyringe)         │
-└──────────────┬──────────────────┘
-               │
-    ┌──────────┼──────────┐
-    │          │          │
-┌───▼───┐ ┌────▼───┐ ┌───▼────┐
-│Health │ │ Logger │ │ Future │
-│Controller│ │Factory │ │Services│
-└───────┘ └────────┘ └────────┘
-```
-
-**Key Features:**
-
-- **BaseConfig<T>**: Abstract base class with Zod schema validation
-- **Fail-Fast Validation**: Configs validate at startup with clear error
-  messages
-- **Environment Variable Mapping**: Automatic env var to config mapping with
-  prefixes
-- **Type Safety**: Full TypeScript type inference from Zod schemas
-- **Constructor Injection**: Clean dependency injection in controllers and
-  services
-
-## Project Structure
-
-```
-neura/
-├── src/
-│   ├── api/                    # API layer (controllers, services)
-│   │   └── health/
-│   │       ├── health.controller.ts
-│   │       └── health.service.ts
-│   ├── bootstrap/              # Application bootstrap
-│   │   ├── server.ts           # Fastify setup, graceful shutdown
-│   │   └── registerRoutes.ts   # Route registration
-│   ├── config/                 # Configuration management
-│   │   ├── core/               # Base config classes
-│   │   │   ├── base.config.ts
-│   │   │   └── config.registry.ts
-│   │   ├── server.config.ts
-│   │   ├── logging.config.ts
-│   │   └── container.ts        # DI container setup
-│   ├── logging/                # Enterprise logging framework
-│   │   ├── interfaces/         # ILogger, ILoggerEngine
-│   │   ├── engines/            # ConsolePrettyEngine, JsonConsoleEngine
-│   │   ├── context/            # AsyncLocalStorage trace context
-│   │   ├── config/             # Logger configuration
-│   │   ├── Logger.ts           # Main Logger class
-│   │   ├── LoggerFactory.ts    # Logger instance factory
-│   │   └── LogLevel.ts         # Log level definitions
-│   ├── types/                  # Shared type definitions
-│   └── main.ts                 # Application entry point
-├── test/                       # E2E tests
-├── .husky/                     # Git hooks
-├── .github/                    # GitHub templates
-├── eslint.config.mjs           # ESLint configuration
-├── jest.config.js              # Jest configuration
-├── tsconfig.json               # TypeScript configuration
-└── package.json
-```
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- **Node.js**: v18 or higher
-- **pnpm**: v10 or higher (package manager)
+- Node.js 18+
+- pnpm 10+
+- OpenAI API key
 
 ### Installation
 
@@ -176,136 +154,102 @@ cd neura
 
 # Install dependencies
 pnpm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
 ```
 
-## Environment Variables
-
-Create a `.env` file in the project root:
+### Start the Runtime
 
 ```bash
-# Server Configuration
-PORT=3000
-HOST=0.0.0.0
-NODE_ENV=development
-
-# Logging Configuration
-LOG_LEVEL=info
-LOG_ENGINE=console-pretty
-LOG_ENABLE_COLORS=true
-```
-
-### Configuration Reference
-
-| Variable            | Description                                       | Default          |
-| ------------------- | ------------------------------------------------- | ---------------- |
-| `PORT`              | Server port                                       | `3000`           |
-| `HOST`              | Server host                                       | `0.0.0.0`        |
-| `NODE_ENV`          | Environment mode                                  | `development`    |
-| `LOG_LEVEL`         | Log verbosity level                               | `info`           |
-| `LOG_ENGINE`        | Logging engine (`console-pretty`, `json-console`) | `console-pretty` |
-| `LOG_ENABLE_COLORS` | Enable colored output                             | `true`           |
-
-## Development
-
-### Start Development Server
-
-```bash
-# Fast transpile-only mode (recommended for development)
+# Development mode
 pnpm dev
 
-# With full type checking (slower)
-pnpm dev:typecheck
+# Production build
+pnpm build && pnpm start
 ```
 
-### Build for Production
+The runtime exposes an API on `http://localhost:3000` by default.
+
+---
+
+## Example Usage
+
+### Send a Command
 
 ```bash
-pnpm build
+curl -X POST http://localhost:3000/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Check disk usage"}'
 ```
 
-### Linting & Formatting
+**Response:**
 
-```bash
-# Run ESLint
-pnpm lint
-
-# Fix ESLint issues
-pnpm lint:fix
-
-# Format code with Prettier
-pnpm format
-
-# Check formatting
-pnpm format:check
-
-# Type check without emitting
-pnpm typecheck
+```json
+{
+  "message": "Command reveived will start execution",
+  "sessionId": "xxxx-xxxx-xxxx-xxxx"
+}
 ```
 
-## Testing
+### Classification Examples
 
-```bash
-# Run all tests
-pnpm test
+| Input                            | Intent             | Security     | Action               |
+| -------------------------------- | ------------------ | ------------ | -------------------- |
+| "Show running processes"         | system_command     | safe         | Auto-execute         |
+| "Install Docker"                 | package_management | sensitive    | Confirm then execute |
+| "Delete log files"               | file_write         | sensitive    | Confirm with details |
+| "Show SSH private key"           | ssh_key_access     | restricted   | Blocked              |
+| "What is the capital of France?" | unknown            | out of scope | Rejected             |
 
-# Run tests in watch mode
-pnpm test:watch
+---
 
-# Run tests with coverage report
-pnpm test:coverage
+## Documentation
 
-# Run E2E tests only
-pnpm test:e2e
-```
+- [Overview](./docs/overview.md) — Philosophy, vision, and design principles
+- [Capabilities](./docs/capabilities.md) — Intent taxonomy and execution model
+- [Architecture](./docs/architecture.md) — System design and component structure
+- [Security Model](./docs/security-model.md) — Security classifications and
+  threat model
+- [Intent Classification](./docs/intent-classification.md) — Classification
+  system and schema
+- [Development Guide](./docs/development-guide.md) — Setup, testing, and
+  contribution
+- [Roadmap](./docs/roadmap.md) — Future direction and planned features
 
-### Test Structure
+---
 
-- **Unit Tests**: Co-located with source files (`*.spec.ts`)
-- **E2E Tests**: Located in `test/` directory
-- **Coverage**: HTML reports generated in `coverage/` directory
+## Roadmap
 
-## Future Extensibility
+### Current (MVP)
 
-The architecture is designed for easy extension:
+- [x] Intent classification engine
+- [x] Security classification with confirmation levels
+- [x] REST API for command ingestion
+- [x] Audit logging framework
 
-### Adding New API Modules
+### Near Term
 
-1. Create controller and service in `src/api/{module}/`
-2. Register routes in `src/bootstrap/registerRoutes.ts`
-3. Add `@injectable()` decorator for DI
+- [ ] Messaging platform integrations (WhatsApp, Telegram)
+- [ ] Daemon mode for background operation
+- [ ] Command execution engine
+- [ ] WebSocket support for real-time status
 
-### Adding New Log Engines
+### Future
 
-1. Implement `ILoggerEngine` interface
-2. Add engine to `src/logging/engines/`
-3. Register in `LoggerFactory`
+- [ ] Multi-agent orchestration
+- [ ] Persistent audit trails
+- [ ] Metrics and observability
+- [ ] Enterprise authentication
 
-### Adding New Configuration
-
-1. Create schema with Zod
-2. Extend `BaseConfig<T>`
-3. Register in `ConfigRegistry`
-4. Access via DI or `getConfigRegistry()`
-
-### Planned Features
-
-- [ ] Agent lifecycle management
-- [ ] Skill registration system
-- [ ] Plugin architecture
-- [ ] WebSocket support
-- [ ] OpenAPI documentation
-- [ ] Metrics and monitoring
-
-## Contributing
-
-Please read [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) for details on our code
-of conduct and contribution guidelines.
-
-## Author
-
-**Tanmay Kumar** - <ktanmay5149@gmail.com>
+---
 
 ## License
 
-This project is licensed under the MIT License - see [LICENSE](./LICENSE) for
-details.
+MIT License — see [LICENSE](./LICENSE) for details.
+
+---
+
+**Note:** Neura is under active development. APIs and features are subject to
+change.

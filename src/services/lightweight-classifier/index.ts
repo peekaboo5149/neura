@@ -5,6 +5,9 @@
  */
 
 export {
-    LightweightClassifierConfigToken, LightweightClassifierService, type ClassificationPrediction, type LightweightClassifierConfig, type UncertaintyEstimate
+  LightweightClassifierConfigToken,
+  LightweightClassifierService,
+  type ClassificationPrediction,
+  type LightweightClassifierConfig,
+  type UncertaintyEstimate,
 } from './lightweight-classifier.service';
-

@@ -148,7 +148,9 @@ Example response format:
   /**
    * Second Pass: Analyze prediction distribution for OOS signals
    */
-  private analyzeDistribution(scores: Record<QueryIntent, number>): Omit<OOSAnalysisResult, 'scoreDistribution'> {
+  private analyzeDistribution(
+    scores: Record<QueryIntent, number>
+  ): Omit<OOSAnalysisResult, 'scoreDistribution'> {
     const entries = Object.entries(scores);
 
     // Sort by confidence descending
@@ -177,20 +179,26 @@ Example response format:
     // Signal 2: Low confidence on top prediction
     if (topConfidence < this.confidenceThreshold) {
       isOOS = true;
-      reasons.push(`Low confidence (${(topConfidence * 100).toFixed(1)}% < ${(this.confidenceThreshold * 100).toFixed(1)}%)`);
+      reasons.push(
+        `Low confidence (${(topConfidence * 100).toFixed(1)}% < ${(this.confidenceThreshold * 100).toFixed(1)}%)`
+      );
     }
 
     // Signal 3: Small gap between top intents (ambiguous)
     if (confidenceGap < this.minConfidenceGap) {
       isOOS = true;
-      reasons.push(`Small confidence gap (${(confidenceGap * 100).toFixed(1)}% < ${(this.minConfidenceGap * 100).toFixed(1)}%)`);
+      reasons.push(
+        `Small confidence gap (${(confidenceGap * 100).toFixed(1)}% < ${(this.minConfidenceGap * 100).toFixed(1)}%)`
+      );
     }
 
     // Signal 4: Multiple intents with similar high scores
     const highConfidenceIntents = entries.filter(([, score]) => score > 0.3);
     if (highConfidenceIntents.length >= 3) {
       isOOS = true;
-      reasons.push(`Multiple competing intents (${highConfidenceIntents.length} with >30% confidence)`);
+      reasons.push(
+        `Multiple competing intents (${highConfidenceIntents.length} with >30% confidence)`
+      );
     }
 
     const reasoning = isOOS

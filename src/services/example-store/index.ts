@@ -5,6 +5,9 @@
  */
 
 export {
-    ExampleStoreConfigToken, ExampleStoreService, type ExampleEntry, type ExampleStoreConfig, type RetrievedExample
+  ExampleStoreConfigToken,
+  ExampleStoreService,
+  type ExampleEntry,
+  type ExampleStoreConfig,
+  type RetrievedExample,
 } from './example-store.service';
-

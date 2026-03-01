@@ -94,9 +94,7 @@ export class EnhancedClassifyIntentNode {
       const parsed = JSON.parse(content) as { intent: string; reason: string };
 
       // Validate the intent
-      const intent = Object.values(QueryIntent).find((i) => i === parsed.intent) as
-        | QueryIntent
-        | undefined;
+      const intent = Object.values(QueryIntent).find((i) => i === (parsed.intent as QueryIntent));
 
       if (!intent) {
         return this.createUnknownResult(`Invalid intent returned: ${parsed.intent}`);
@@ -168,9 +166,7 @@ Respond with a JSON object containing:
 /**
  * Factory function for creating enhanced classify node
  */
-export function createEnhancedClassifyIntentNode(
-  deps: EnhancedClassifyDependencies
-): GraphNode {
+export function createEnhancedClassifyIntentNode(deps: EnhancedClassifyDependencies): GraphNode {
   const node = new EnhancedClassifyIntentNode(deps);
   return node.createNode();
 }

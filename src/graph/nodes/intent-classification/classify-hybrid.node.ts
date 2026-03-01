@@ -17,9 +17,9 @@
 
 import { QueryIntent } from '@api/query/query-intent.enum';
 import {
-    ExampleStoreService,
-    IntentDescriptionService,
-    LightweightClassifierService,
+  ExampleStoreService,
+  IntentDescriptionService,
+  LightweightClassifierService,
 } from '@services';
 import OpenAI from 'openai';
 import 'reflect-metadata';
@@ -195,9 +195,7 @@ export class HybridClassifyIntentNode {
 
     const parsed = JSON.parse(content) as { intent: string; reason: string };
 
-    const intent = Object.values(QueryIntent).find((i) => i === parsed.intent) as
-      | QueryIntent
-      | undefined;
+    const intent = Object.values(QueryIntent).find((i) => i === (parsed.intent as QueryIntent));
 
     if (!intent) {
       return this.createUnknownResult(`Invalid intent returned: ${parsed.intent}`);

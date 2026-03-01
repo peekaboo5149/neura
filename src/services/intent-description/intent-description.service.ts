@@ -10,7 +10,11 @@
  * 3. Providing semantic context for better classification accuracy
  */
 
-import { IQueryIntentMetadata, QueryIntent, QueryIntentMetadata } from '@api/query/query-intent.enum';
+import {
+  IQueryIntentMetadata,
+  QueryIntent,
+  QueryIntentMetadata,
+} from '@api/query/query-intent.enum';
 import OpenAI from 'openai';
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
@@ -81,7 +85,7 @@ export class IntentDescriptionService {
     }
 
     return descriptions;
-}
+  }
 
   /**
    * Build enhanced system prompt with rich intent descriptions

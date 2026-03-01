@@ -129,7 +129,10 @@ export class ExampleStoreService {
     }
 
     // Group by intent and take top-k per intent
-    const groupedByIntent = new Map<QueryIntent, Array<{ entry: ExampleEntry; similarity: number }>>();
+    const groupedByIntent = new Map<
+      QueryIntent,
+      Array<{ entry: ExampleEntry; similarity: number }>
+    >();
 
     for (const item of similarities) {
       const list = groupedByIntent.get(item.entry.intent) ?? [];

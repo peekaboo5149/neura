@@ -48,7 +48,6 @@ export class AdaptiveICLClassifyIntentNode {
     this.descriptionService = deps.intentDescriptionService;
     this.exampleStore = deps.exampleStoreService;
     this.maxICLExamples = deps.maxICLExamples ?? 5;
-
   }
 
   /**
@@ -80,10 +79,7 @@ export class AdaptiveICLClassifyIntentNode {
   private async classify(input: string): Promise<ClassificationResult> {
     try {
       // Get ICL examples dynamically
-      const iclExamples = await this.exampleStore.getICLExamples(
-        input,
-        this.maxICLExamples
-      );
+      const iclExamples = await this.exampleStore.getICLExamples(input, this.maxICLExamples);
 
       // Build adaptive system prompt
       const systemPrompt = await this.buildAdaptiveSystemPrompt(input, iclExamples);
@@ -107,9 +103,7 @@ export class AdaptiveICLClassifyIntentNode {
       const parsed = JSON.parse(content) as { intent: string; reason: string };
 
       // Validate the intent
-      const intent = Object.values(QueryIntent).find((i) => i === parsed.intent) as
-        | QueryIntent
-        | undefined;
+      const intent = Object.values(QueryIntent).find((i) => i === (parsed.intent as QueryIntent));
 
       if (!intent) {
         return this.createUnknownResult(`Invalid intent returned: ${parsed.intent}`);

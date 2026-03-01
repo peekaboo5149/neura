@@ -5,7 +5,9 @@
  */
 
 export {
-    AugmentationTechnique, DataAugmentationConfigToken, DataAugmentationService, type AugmentedExample,
-    type DataAugmentationConfig
+  AugmentationTechnique,
+  DataAugmentationConfigToken,
+  DataAugmentationService,
+  type AugmentedExample,
+  type DataAugmentationConfig,
 } from './data-augmentation.service';
-

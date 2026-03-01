@@ -19,10 +19,7 @@ import { QueryIntent, QueryIntentMetadata } from '@api/query/query-intent.enum';
 import OpenAI from 'openai';
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
-import {
-    AugmentedExample,
-    DataAugmentationService,
-} from '../data-augmentation';
+import { AugmentedExample, DataAugmentationService } from '../data-augmentation';
 
 export interface ClassificationPrediction {
   intent: QueryIntent;
@@ -232,15 +229,14 @@ export class LightweightClassifierService {
     // Simulate MC dropout by sampling with noise
     for (let i = 0; i < this.numMonteCarloSamples; i++) {
       const noisyEmbedding = this.addNoise(queryEmbedding, 0.01 * (i + 1));
-      const prediction = await this.classifyWithEmbedding(noisyEmbedding);
+      const prediction = this.classifyWithEmbedding(noisyEmbedding);
       predictions.push(prediction.confidence);
     }
 
     // Calculate statistics
     const mean = predictions.reduce((a, b) => a + b, 0) / predictions.length;
     const variance =
-      predictions.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-      predictions.length;
+      predictions.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / predictions.length;
     const stdDev = Math.sqrt(variance);
 
     return {
@@ -255,9 +251,7 @@ export class LightweightClassifierService {
   /**
    * Hybrid classification: Fast path + LLM fallback
    */
-  async classifyWithRouting(
-    query: string
-  ): Promise<{
+  async classifyWithRouting(query: string): Promise<{
     prediction: ClassificationPrediction;
     uncertainty: UncertaintyEstimate;
     shouldUseLLM: boolean;
@@ -324,13 +318,11 @@ export class LightweightClassifierService {
   /**
    * Classify using a pre-computed embedding
    */
-  private async classifyWithEmbedding(embedding: number[]): Promise<ClassificationPrediction> {
+  private classifyWithEmbedding(embedding: number[]): ClassificationPrediction {
     const scores: Record<string, number> = {};
 
     for (const [intent, prototype] of this.prototypes) {
-      const similarities = prototype.embeddings.map((emb) =>
-        this.cosineSimilarity(embedding, emb)
-      );
+      const similarities = prototype.embeddings.map((emb) => this.cosineSimilarity(embedding, emb));
       scores[intent] = Math.max(...similarities, 0);
     }
 

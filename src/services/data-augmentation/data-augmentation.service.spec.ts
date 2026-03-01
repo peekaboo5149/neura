@@ -1,9 +1,6 @@
 import { QueryIntent } from '@api/query/query-intent.enum';
 import 'reflect-metadata';
-import {
-    AugmentationTechnique,
-    DataAugmentationService
-} from './data-augmentation.service';
+import { AugmentationTechnique, DataAugmentationService } from './data-augmentation.service';
 
 describe('DataAugmentationService', () => {
   let service: DataAugmentationService;

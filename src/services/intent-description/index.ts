@@ -5,7 +5,8 @@
  */
 
 export {
-    IntentDescriptionConfigToken, IntentDescriptionService, type IntentDescription,
-    type IntentDescriptionConfig
+  IntentDescriptionConfigToken,
+  IntentDescriptionService,
+  type IntentDescription,
+  type IntentDescriptionConfig,
 } from './intent-description.service';
-

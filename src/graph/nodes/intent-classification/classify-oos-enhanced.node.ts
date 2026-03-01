@@ -17,10 +17,10 @@
 
 import { QueryIntent } from '@api/query/query-intent.enum';
 import {
-    ExampleStoreService,
-    IntentDescriptionService,
-    LightweightClassifierService,
-    OOSDetectionService,
+  ExampleStoreService,
+  IntentDescriptionService,
+  LightweightClassifierService,
+  OOSDetectionService,
 } from '@services';
 import OpenAI from 'openai';
 import 'reflect-metadata';
@@ -144,7 +144,8 @@ export class OOSEnhancedClassifyIntentNode {
             oosAnalysis: {
               isOOS: oosResult.isOOS,
               entropy: oosResult.entropy,
-              confidenceGap: oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
+              confidenceGap:
+                oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
             },
           },
         };
@@ -164,7 +165,8 @@ export class OOSEnhancedClassifyIntentNode {
           oosAnalysis: {
             isOOS: oosResult.isOOS,
             entropy: oosResult.entropy,
-            confidenceGap: oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
+            confidenceGap:
+              oosResult.topConfidence - (Object.values(oosResult.scoreDistribution)[1] ?? 0),
           },
         },
       };
@@ -218,9 +220,7 @@ If this query is outside Neura's scope (general knowledge, personal questions, e
 
     const parsed = JSON.parse(content) as { intent: string; reason: string };
 
-    const intent = Object.values(QueryIntent).find((i) => i === parsed.intent) as
-      | QueryIntent
-      | undefined;
+    const intent = Object.values(QueryIntent).find((i) => i === (parsed.intent as QueryIntent));
 
     if (!intent) {
       return this.createUnknownResult(`Invalid intent returned: ${parsed.intent}`);

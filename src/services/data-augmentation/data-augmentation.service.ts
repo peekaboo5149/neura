@@ -110,9 +110,7 @@ export class DataAugmentationService {
   /**
    * Generate augmented examples from a set of in-scope queries
    */
-  augmentExamples(
-    examples: Array<{ query: string; intent: QueryIntent }>
-  ): AugmentedExample[] {
+  augmentExamples(examples: Array<{ query: string; intent: QueryIntent }>): AugmentedExample[] {
     const augmented: AugmentedExample[] = [];
 
     for (const example of examples) {

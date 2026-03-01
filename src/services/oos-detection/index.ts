@@ -5,7 +5,8 @@
  */
 
 export {
-    OOSDetectionConfigToken, OOSDetectionService, type OOSAnalysisResult,
-    type OOSDetectionConfig
+  OOSDetectionConfigToken,
+  OOSDetectionService,
+  type OOSAnalysisResult,
+  type OOSDetectionConfig,
 } from './oos-detection.service';
-

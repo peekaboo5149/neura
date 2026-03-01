@@ -6,7 +6,7 @@
 
 export { CommandExecutionResult } from './command-execution.dto';
 export {
-    CommandExecutorConfigToken, CommandExecutorOptions,
-    CommandExecutorTool
+  CommandExecutorConfigToken,
+  CommandExecutorOptions,
+  CommandExecutorTool,
 } from './command-executor.tool';
-

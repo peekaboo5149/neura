@@ -129,11 +129,7 @@ describe('CommandExecutorTool', () => {
         // no-op
       };
 
-      const result = await executor.executeStreaming(
-        'echo "streaming test"',
-        onData,
-        onError
-      );
+      const result = await executor.executeStreaming('echo "streaming test"', onData, onError);
 
       expect(result.isSuccess()).toBe(true);
       expect(chunks.length).toBeGreaterThan(0);
@@ -149,11 +145,7 @@ describe('CommandExecutorTool', () => {
         errorChunks.push(data);
       };
 
-      const result = await executor.executeStreaming(
-        'echo "error" >&2 && exit 1',
-        onData,
-        onError
-      );
+      const result = await executor.executeStreaming('echo "error" >&2 && exit 1', onData, onError);
 
       expect(result.isSuccess()).toBe(false);
       expect(errorChunks.length).toBeGreaterThan(0);
@@ -168,11 +160,7 @@ describe('CommandExecutorTool', () => {
         // no-op
       };
 
-      const result = await executor.executeStreaming(
-        'echo "success"',
-        onData,
-        onError
-      );
+      const result = await executor.executeStreaming('echo "success"', onData, onError);
 
       expect(result.isSuccess()).toBe(true);
       expect(result.message).toBe('success');
@@ -186,12 +174,7 @@ describe('CommandExecutorTool', () => {
         // no-op
       };
 
-      const result = await executor.executeStreaming(
-        'sleep 5',
-        onData,
-        onError,
-        { timeout: 100 }
-      );
+      const result = await executor.executeStreaming('sleep 5', onData, onError, { timeout: 100 });
 
       expect(result.isSuccess()).toBe(false);
       expect(result.error).toContain('timed out');

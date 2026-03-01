@@ -131,11 +131,7 @@ export const QueryIntentMetadata: Record<QueryIntent, IQueryIntentMetadata> = {
     description: 'Search and retrieve information of system only',
     classification: SecurityClassification.SAFE,
     confirmationLevel: ConfirmationLevel.NONE,
-    examples: [
-      'Get CPU Utilization',
-      'Check if nginx is running',
-      'Check if docker is installed',
-    ],
+    examples: ['Get CPU Utilization', 'Check if nginx is running', 'Check if docker is installed'],
     keywords: ['search', 'find', 'get', 'check', 'status', 'information'],
   },
 

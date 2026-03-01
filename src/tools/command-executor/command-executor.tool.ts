@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 /**
  * Command Executor Tool
  *
@@ -64,10 +66,7 @@ export class CommandExecutorTool {
         timeoutId = setTimeout(() => {
           childProcess.kill('SIGTERM');
           resolve(
-            CommandExecutionResult.failure(
-              -1,
-              `Command timed out after ${mergedOptions.timeout}ms`
-            )
+            CommandExecutionResult.failure(-1, `Command timed out after ${mergedOptions.timeout}ms`)
           );
         }, mergedOptions.timeout);
       }
@@ -163,10 +162,7 @@ export class CommandExecutorTool {
         timeoutId = setTimeout(() => {
           childProcess.kill('SIGTERM');
           resolve(
-            CommandExecutionResult.failure(
-              -1,
-              `Command timed out after ${mergedOptions.timeout}ms`
-            )
+            CommandExecutionResult.failure(-1, `Command timed out after ${mergedOptions.timeout}ms`)
           );
         }, mergedOptions.timeout);
       }

@@ -16,6 +16,9 @@ export {
     createEnhancedClassifyIntentNode,
     type EnhancedClassifyDependencies
 } from './classify-enhanced.node';
+export {
+    HybridClassifyConfigToken, HybridClassifyIntentNode, createHybridClassifyIntentNode, type HybridClassificationResult, type HybridClassifyDependencies
+} from './classify-hybrid.node';
 export { createClassifyIntentNode } from './classify.node';
 export { createSecurityCheckNode } from './security-check.node';
 export * from './types';

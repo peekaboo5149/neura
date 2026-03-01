@@ -1,8 +1,8 @@
-import { OpenAIConfig } from '@config/openai.config';
+import { GraphState } from '@graph/core/types';
+import { QueryProcessingWorkflow } from '@graph/workflows/query-processing.workflow';
 import { Logger } from '@logging/Logger';
 import { inject, injectable } from 'tsyringe';
-import { IntentClassificationChain } from './chains/intent-classification.chain';
-import { QueryIntent, QueryIntentMetadata, SecurityClassification } from './query-intent.enum';
+import { QueryIntent, SecurityClassification } from './query-intent.enum';
 
 /**
  * Result of query execution and classification.
@@ -24,112 +24,91 @@ export interface QueryExecutionResult {
 @injectable()
 export class QueryService {
   private readonly logger: Logger;
-  private readonly classificationChain: IntentClassificationChain;
 
-  constructor(@inject(OpenAIConfig) private readonly openAIConfig: OpenAIConfig) {
+  constructor(
+    @inject('QueryProcessingWorkflow') private readonly workflow: QueryProcessingWorkflow
+  ) {
     this.logger = new Logger('QueryService');
-    this.classificationChain = IntentClassificationChain.create(
-      this.openAIConfig.apiKey,
-      this.openAIConfig.model,
-      0.1 // Low temperature for consistent classification
-    );
   }
 
   /**
-   * Execute a query by first classifying intent, then handling appropriately.
+   * Execute a query by processing it through the graph workflow.
+   *
+   * The workflow handles:
+   * 1. Intent classification (via LLM)
+   * 2. Security analysis
+   * 3. Execution permission determination
    *
    * @param query - The natural language query from the user
-   * @param _context - Optional context for the query
+   * @param context - Optional context for the query
    * @returns The classification result and execution status
    */
   public async execute(
     query: string,
-    _context?: Record<string, unknown>
+    context?: Record<string, unknown>
   ): Promise<QueryExecutionResult> {
-    this.logger.info('Query received', { query, model: this.openAIConfig.model });
+    this.logger.info('Query received', { query });
 
-    // Step 0: Check if the query is clearly out of scope
-    if (this.isClearlyOutOfScope(query)) {
+    // Create initial state for the graph
+    const initialState: GraphState = {
+      input: query,
+      inputType: 'query',
+      task: 'intent_classification',
+      results: {},
+      metadata: {
+        startTime: new Date().toISOString(),
+        nodeExecutionLog: [],
+      },
+      context: {
+        ...context,
+      },
+    };
+
+    try {
+      // Execute the workflow
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const finalState = (await this.workflow.invoke(initialState)) as GraphState;
+
+      this.logger.info('Query processed', {
+        intent: finalState.results.intent?.intent,
+        security: finalState.results.security?.classification,
+        canExecute: finalState.results.security?.canExecute,
+        nodesExecuted: finalState.metadata.nodeExecutionLog,
+      });
+
+      // Map final state to execution result
+      return this.mapStateToResult(finalState);
+    } catch (error) {
+      const errorToLog = error instanceof Error ? error : new Error(String(error));
+      this.logger.error('Query processing failed', errorToLog);
+
+      // Return safe fallback on failure
       return {
         intent: QueryIntent.UNKNOWN,
-        reason: 'Query outside system automation scope',
+        reason: `Processing failed: ${errorToLog.message}`,
         classification: SecurityClassification.SAFE,
         canExecute: false,
       };
     }
+  }
 
-    // Step 1: Classify the query intent using LangChain
-    const classification = await this.classifyQuery(query);
-    this.logger.info('Query classified', {
-      intent: classification.intent,
-      classification: QueryIntentMetadata[classification.intent].classification,
-    });
+  /**
+   * Map the final graph state to a QueryExecutionResult.
+   *
+   * @param state - The final graph state
+   * @returns The mapped execution result
+   */
+  private mapStateToResult(state: GraphState): QueryExecutionResult {
+    const intent = state.results.intent?.intent ?? QueryIntent.UNKNOWN;
+    const reason = state.results.intent?.reason ?? 'No classification provided';
+    const classification = state.results.security?.classification ?? SecurityClassification.SAFE;
+    const canExecute = state.results.security?.canExecute ?? false;
 
-    // Step 2: Check if operation is allowed
-    const metadata = QueryIntentMetadata[classification.intent];
-
-    if (metadata.classification === SecurityClassification.RESTRICTED) {
-      this.logger.warn('Restricted operation attempted', { intent: classification.intent });
-      return {
-        intent: classification.intent,
-        reason: classification.reason,
-        classification: metadata.classification,
-        canExecute: false,
-      };
-    }
-
-    // Step 3: Return classification with execution status
     return {
-      intent: classification.intent,
-      reason: classification.reason,
-      classification: metadata.classification,
-      canExecute: true,
+      intent,
+      reason,
+      classification,
+      canExecute,
     };
-  }
-
-  /**
-   * Classify a query into a QueryIntent using LangChain.
-   *
-   * @param query - The user's natural language query
-   * @returns The classification response with intent and reasoning
-   */
-  private async classifyQuery(query: string): Promise<{
-    intent: QueryIntent;
-    reason: string;
-  }> {
-    try {
-      const result = await this.classificationChain.classify(query);
-      return result;
-    } catch (error) {
-      const errorToLog = error instanceof Error ? error : new Error(String(error));
-      this.logger.error('Query classification failed', errorToLog);
-
-      // Return UNKNOWN on classification failure
-      return {
-        intent: QueryIntent.UNKNOWN,
-        reason: `Classification failed: ${errorToLog.message}`,
-      };
-    }
-  }
-
-  /**
-   * Determine if a query is clearly out of scope for the assistant.
-   *
-   * @param query - The user's query
-   * @returns True if the query is out of scope, false otherwise
-   */
-  private isClearlyOutOfScope(query: string): boolean {
-    const patterns = [
-      /^who\s/i,
-      /^what\s/i,
-      /^where\s/i,
-      /^when\s/i,
-      /^tell\sme/i,
-      /^explain/i,
-      /^joke/i,
-      /^buy\sme/i,
-    ];
-
-    return patterns.some((p) => p.test(query.trim()));
   }
 }

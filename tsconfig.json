@@ -16,7 +16,9 @@
       "@cli": ["cli/index"],
       "@daemon/*": ["daemon/*"],
       "@daemon": ["daemon/index"],
-      "@types/*": ["types/*"]
+      "@types/*": ["types/*"],
+      "@graph": ["graph/index"],
+      "@graph/*": ["graph/*"]
     },
     "strict": true,
     "esModuleInterop": true,

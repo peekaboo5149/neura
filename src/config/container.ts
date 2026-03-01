@@ -1,5 +1,9 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+import {
+  createQueryProcessingWorkflow,
+  QueryProcessingWorkflow,
+} from '../graph/workflows/query-processing.workflow';
 import { OpenAIConfig } from './openai.config';
 
 /**
@@ -19,6 +23,20 @@ export function initializeContainer(): void {
 
   // Register config classes for direct injection
   container.register(OpenAIConfig, { useClass: OpenAIConfig });
+
+  // Register the query processing workflow as a singleton
+  container.register<QueryProcessingWorkflow>('QueryProcessingWorkflow', {
+    useFactory: (dependencyContainer) => {
+      const openAIConfig = dependencyContainer.resolve(OpenAIConfig);
+      return createQueryProcessingWorkflow({
+        openAI: {
+          apiKey: openAIConfig.apiKey,
+          model: openAIConfig.model,
+          temperature: 0.1, // Low temperature for consistent classification
+        },
+      });
+    },
+  });
 }
 
 /**

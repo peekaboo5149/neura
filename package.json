@@ -15,7 +15,8 @@
     "@bootstrap": "dist/src/bootstrap",
     "@cli": "dist/src/cli",
     "@daemon": "dist/src/daemon",
-    "@types": "dist/src/types"
+    "@types": "dist/src/types",
+    "@tools": "dist/src/tools"
   },
   "scripts": {
     "build": "tsc",

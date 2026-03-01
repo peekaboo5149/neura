@@ -128,15 +128,15 @@ export interface IQueryIntentMetadata {
 export const QueryIntentMetadata: Record<QueryIntent, IQueryIntentMetadata> = {
   // === SAFE OPERATIONS ===
   [QueryIntent.INFORMATION_RETRIEVAL]: {
-    description: 'Search and retrieve information from various sources',
+    description: 'Search and retrieve information of system only',
     classification: SecurityClassification.SAFE,
     confirmationLevel: ConfirmationLevel.NONE,
     examples: [
-      'Search piyush.dev for articles',
-      'Find the weather in New York',
-      'Get the latest news on AI',
+      'Get CPU Utilization',
+      'Check if nginx is running',
+      'Check if docker is installed',
     ],
-    keywords: ['search', 'find', 'get', 'lookup', 'weather', 'news'],
+    keywords: ['search', 'find', 'get', 'check', 'status', 'information'],
   },
 
   [QueryIntent.MEMORY_QUERY]: {

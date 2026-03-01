@@ -18,7 +18,9 @@
       "@daemon": ["daemon/index"],
       "@types/*": ["types/*"],
       "@graph": ["graph/index"],
-      "@graph/*": ["graph/*"]
+      "@graph/*": ["graph/*"],
+      "@tools": ["tools/index"],
+      "@tools/*": ["tools/*"]
     },
     "strict": true,
     "esModuleInterop": true,
